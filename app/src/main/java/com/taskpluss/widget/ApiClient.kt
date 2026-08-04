@@ -4,7 +4,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
@@ -12,9 +11,17 @@ import com.taskpluss.widget.model.GroupItem
 import com.taskpluss.widget.model.TaskItem
 import com.taskpluss.widget.model.WidgetCache
 
+/**
+ * کلاینت API مطابق بک‌اند تسک‌پلاس (doGet + action)
+ * همان مسیر فرانت‌اند: action=login|getGroups|getTasks|addTask|updateTask
+ */
 object ApiClient {
 
     private const val TIMEOUT = 20000
+
+    /** آدرس پیش‌فرض از config.js پروژه TaskPluss */
+    const val DEFAULT_WEBAPP_URL =
+        "https://script.google.com/macros/s/AKfycbx0W1jYG8-N4le384oJFYIwXD1OAgYb5lc6E6vOe9CDO3ov7fmkNRXJNdOvw_GSzGalkw/exec"
 
     data class Result(
         val success: Boolean,
@@ -23,249 +30,45 @@ object ApiClient {
         val token: String? = null
     )
 
-    /** نرمال‌سازی آدرس Web App */
     fun normalizeUrl(raw: String): String {
         var u = raw.trim()
-        // حذف فاصله و کاراکترهای مخفی
-        u = u.replace("\u200f", "").replace("\u200e", "").replace("\u202a", "").replace("\u202c", "")
-        if (u.isBlank()) return u
-        // اگر فقط شناسه deployment داده شده
-        if (!u.startsWith("http")) {
-            // حالت: AKfycb.../exec یا فقط شناسه
-            if (u.contains("/exec") || u.length > 20) {
-                u = "https://script.google.com/macros/s/$u"
-            }
-        }
-        // اصلاح typo رایج exed → exec
+            .replace("\u200f", "").replace("\u200e", "")
+            .replace("\u202a", "").replace("\u202c", "")
+        if (u.isBlank()) return DEFAULT_WEBAPP_URL
         if (u.endsWith("/exed")) u = u.dropLast(4) + "exec"
         if (u.endsWith("/exe")) u = u + "c"
-        // اطمینان از /exec در انتها (بدون query)
-        val noQuery = u.substringBefore("?")
-        if (!noQuery.endsWith("/exec") && !noQuery.endsWith("/exec/")) {
-            // اگر /dev یا چیزی دیگر است دست نزن؛ فقط هشدار در پیام
+        if (!u.startsWith("http")) {
+            u = "https://script.google.com/macros/s/$u"
         }
-        return u
+        u = u.substringBefore("?")
+        if (!u.endsWith("/exec") && !u.endsWith("/exec/")) {
+            if (!u.endsWith("/")) u += "/"
+            if (!u.endsWith("exec/")) u = u.trimEnd('/') + "/exec"
+        }
+        return u.trimEnd('/')
     }
 
     private fun isHtml(text: String): Boolean {
-        val t = text.trimStart().take(200).lowercase()
+        val t = text.trimStart().take(120).lowercase()
         return t.startsWith("<!doctype") || t.startsWith("<html") || t.contains("<head>")
     }
 
-    private fun parseJsonSafe(text: String): JSONObject {
+    private fun parseJson(text: String): JSONObject {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) throw Exception("پاسخ خالی از سرور")
         if (isHtml(trimmed)) {
             throw Exception(
-                "سرور صفحه HTML برگرداند نه JSON.\n" +
-                "۱) آدرس باید کامل باشد و به /exec ختم شود\n" +
-                "مثال: https://script.google.com/macros/s/XXXX/exec\n" +
-                "۲) Deploy → Anyone (حتی بدون ورود گوگل)\n" +
-                "۳) نسخه جدید Deploy را Publish کرده باشید"
+                "سرور HTML برگرداند نه JSON.\n" +
+                "آدرس باید کامل و به /exec ختم شود و Deploy روی Anyone باشد."
             )
         }
-        // گاهی پاسخ double-encoded است (رشته JSON داخل رشته)
         var candidate = trimmed
         if (candidate.startsWith("\"") && candidate.endsWith("\"")) {
-            candidate = JSONObject.quote(candidate).let {
-                // decode once
-                try {
-                    JSONArray("[$candidate]").getString(0)
-                } catch (_: Exception) {
-                    candidate
-                }
-            }
+            try {
+                candidate = JSONArray("[$candidate]").getString(0)
+            } catch (_: Exception) { /* keep */ }
         }
-        return try {
-            JSONObject(candidate)
-        } catch (e: Exception) {
-            // اگر خود رشته JSON باشد که با { شروع نمی‌شود ولی parse می‌شود
-            throw Exception("پاسخ JSON معتبر نیست: ${trimmed.take(80)}…")
-        }
-    }
-
-    /** Login: ارسال با GET و پارامترهای query */
-    fun login(baseUrl: String, username: String, password: String): Result {
-        val url = normalizeUrl(baseUrl)
-        if (url.isBlank()) return Result(false, "آدرس Web App خالی است")
-
-        return try {
-            val data = JSONObject().put("username", username).put("password", password)
-            val fullUrl = "$url?action=${URLEncoder.encode("login", "UTF-8")}&data=${URLEncoder.encode(data.toString(), "UTF-8")}"
-            val resp = getText(fullUrl)
-            val obj = parseJsonSafe(resp)
-            if (obj.optBoolean("success", false) || obj.has("token")) {
-                Result(true, "ورود موفق", token = obj.optString("token", ""))
-            } else {
-                Result(false, obj.optString("message", "ورود ناموفق"))
-            }
-        } catch (e: Exception) {
-            Result(false, e.message ?: "خطای شبکه")
-        }
-    }
-
-    /** اگر سرور یک JSON به‌صورت رشته داخل فیلد برگردانده، بازش کن */
-    private fun unwrap(obj: JSONObject): JSONObject {
-        // بعضی مسیرها کل پاسخ را داخل success/message نمی‌گذارند
-        return obj
-    }
-
-    fun fetchAll(baseUrl: String, token: String, selectedGroup: String): Result {
-        val url = normalizeUrl(baseUrl)
-        return try {
-            // درخواست گروه‌ها با GET و فرمت action/data
-            val groupsData = JSONObject()
-            val groupsUrl = "$url?action=${URLEncoder.encode("getGroups", "UTF-8")}&token=${URLEncoder.encode(token, "UTF-8")}&data=${URLEncoder.encode(groupsData.toString(), "UTF-8")}"
-            val groupsResp = getText(groupsUrl)
-            val groupsObj = parseJsonSafe(groupsResp)
-            if (!groupsObj.optBoolean("success", true) && groupsObj.has("message")) {
-                return Result(false, groupsObj.optString("message", "خطا در دریافت گروه‌ها"))
-            }
-
-            val groupsMap = mutableMapOf<String, GroupItem>()
-            // پشتیبانی از فرمت‌های مختلف پاسخ
-            val gArray = groupsObj.optJSONArray("groups")
-            if (gArray != null) {
-                for (i in 0 until gArray.length()) {
-                    val g = gArray.getJSONObject(i)
-                    val key = g.optString("groupId", g.optString("id", "group_$i"))
-                    groupsMap[key] = GroupItem(
-                        key = key,
-                        name = g.optString("groupName", g.optString("name", key)),
-                        color = g.optString("color", "#5B6B7A")
-                    )
-                }
-            } else {
-                val gObj = groupsObj.optJSONObject("groups")
-                if (gObj != null) {
-                    val keys = gObj.keys()
-                    while (keys.hasNext()) {
-                        val k = keys.next()
-                        val g = gObj.getJSONObject(k)
-                        groupsMap[k] = GroupItem(
-                            key = k,
-                            name = g.optString("name", k),
-                            color = g.optString("color", "#5B6B7A")
-                        )
-                    }
-                }
-            }
-            if (!groupsMap.containsKey("none")) {
-                groupsMap["none"] = GroupItem("none", "بدون گروه")
-            }
-            // اضافه کردن گروه «همه» اگر وجود ندارد
-            if (!groupsMap.containsKey("all")) {
-                groupsMap["all"] = GroupItem("all", "همه")
-            }
-
-            // درخواست تسک‌ها با GET و فرمت action/data
-            val tasksData = JSONObject().put("page", 0).put("limit", 40)
-            val tasksUrl = "$url?action=${URLEncoder.encode("getTasks", "UTF-8")}&token=${URLEncoder.encode(token, "UTF-8")}&data=${URLEncoder.encode(tasksData.toString(), "UTF-8")}"
-            val tasksResp = getText(tasksUrl)
-            val tasksObj = parseJsonSafe(tasksResp)
-            if (!tasksObj.optBoolean("success", true) && tasksObj.has("message")) {
-                return Result(false, tasksObj.optString("message", "خطا در دریافت تسک‌ها"))
-            }
-            val arr = tasksObj.optJSONArray("tasks") ?: JSONArray()
-            val list = mutableListOf<TaskItem>()
-            for (i in 0 until arr.length()) {
-                val o = arr.getJSONObject(i)
-                list.add(
-                    TaskItem(
-                        id = o.optString("taskId", o.optString("id")),
-                        title = o.optString("title"),
-                        status = if (o.optBoolean("isDone", false)) "done" else "todo",
-                        priority = o.optInt("priority", 0),
-                        date = "",
-                        created = o.optString("createdAt", o.optString("created")),
-                        group = o.optString("groupId", o.optString("group", "none")),
-                        notes = o.optString("description", o.optString("notes"))
-                    )
-                )
-            }
-
-            val cache = WidgetCache(
-                tasks = list,
-                groups = groupsMap,
-                selectedGroupKey = selectedGroup,
-                updatedAt = nowTime(),
-                offline = false
-            )
-            Result(true, "موفق", cache = cache)
-        } catch (e: Exception) {
-            Result(false, e.message ?: "خطای شبکه")
-        }
-    }
-
-    fun addTask(baseUrl: String, token: String, title: String): Result {
-        val url = normalizeUrl(baseUrl)
-        return try {
-            // ساخت آبجکت تسک کامل مطابق با فرمت code.gs
-            val taskObj = JSONObject()
-                .put("id", java.util.UUID.randomUUID().toString())
-                .put("title", title)
-                .put("status", "todo")
-                .put("priority", 0)
-                .put("date", "")
-                .put("created", "")
-                .put("group", "none")
-                .put("tags", JSONArray())
-                .put("notes", "")
-                .put("mainTask", JSONObject.NULL)
-                .put("subtasks", JSONArray())
-            
-            val data = taskObj
-            
-            val fullUrl = "$url?action=${URLEncoder.encode("addTask", "UTF-8")}&token=${URLEncoder.encode(token, "UTF-8")}&data=${URLEncoder.encode(data.toString(), "UTF-8")}"
-            val resp = getText(fullUrl)
-            val obj = parseJsonSafe(resp)
-            if (obj.optBoolean("success", false)) {
-                Result(true, "تسک اضافه شد")
-            } else {
-                Result(false, obj.optString("message", "خطا در افزودن"))
-            }
-        } catch (e: Exception) {
-            Result(false, e.message ?: "خطای شبکه")
-        }
-    }
-
-    fun toggleTaskDone(baseUrl: String, token: String, task: TaskItem): Result {
-        val url = normalizeUrl(baseUrl)
-        return try {
-            val isDone = task.status != "done"  // اگر انجام نشده باشد، انجام شده قرار بده
-            
-            // ساخت آبجکت تسک کامل با وضعیت جدید مطابق فرمت code.gs
-            val taskObj = JSONObject()
-                .put("id", task.id)
-                .put("title", task.title)
-                .put("status", if (isDone) "done" else "todo")
-                .put("priority", task.priority)
-                .put("date", task.date)
-                .put("created", task.created)
-                .put("group", task.group)
-                .put("tags", JSONArray().apply {
-                    task.tags?.forEach { put(it) }
-                })
-                .put("notes", task.notes)
-                .put("mainTask", JSONObject.NULL)
-                .put("subtasks", JSONArray().apply {
-                    task.subtasks?.forEach { put(it) }
-                })
-            
-            val data = taskObj
-            
-            // استفاده از updateTask برای تغییر وضعیت
-            val fullUrl = "$url?action=${URLEncoder.encode("updateTask", "UTF-8")}&token=${URLEncoder.encode(token, "UTF-8")}&data=${URLEncoder.encode(data.toString(), "UTF-8")}"
-            val resp = getText(fullUrl)
-            val obj = parseJsonSafe(resp)
-            if (obj.optBoolean("success", false)) {
-                Result(true, "وضعیت به‌روز شد")
-            } else {
-                Result(false, obj.optString("message", "خطا"))
-            }
-        } catch (e: Exception) {
-            Result(false, e.message ?: "خطای شبکه")
-        }
+        return JSONObject(candidate)
     }
 
     private fun getText(fullUrl: String): String {
@@ -278,7 +81,7 @@ object ApiClient {
                 readTimeout = TIMEOUT
                 instanceFollowRedirects = false
                 setRequestProperty("Accept", "application/json, text/plain, */*")
-                setRequestProperty("User-Agent", "TaskPlussWidget/1.0")
+                setRequestProperty("User-Agent", "TaskPlussWidget/1.1")
             }
             val code = conn.responseCode
             if (code in 300..399) {
@@ -288,16 +91,183 @@ object ApiClient {
                 conn.disconnect()
                 continue
             }
-            val stream = if (code in 200..299) conn.inputStream else (conn.errorStream ?: conn.inputStream)
+            val stream = if (code in 200..299) {
+                conn.inputStream
+            } else {
+                conn.errorStream ?: conn.inputStream
+            }
             return BufferedReader(InputStreamReader(stream, Charsets.UTF_8)).use { it.readText() }
         }
         throw Exception("Redirect زیاد یا خطای شبکه")
     }
 
-    private fun postJson(baseUrl: String, body: String): String {
-        // این تابع برای سازگاری با کدهای قدیمی نگه داشته شده است
-        // اما اکنون تمام درخواست‌ها از طریق getText با متد GET ارسال می‌شوند
-        throw UnsupportedOperationException("استفاده از POST پشتیبانی نمی‌شود. از GET استفاده کنید.")
+    private fun buildUrl(base: String, params: Map<String, String>): String {
+        val b = normalizeUrl(base)
+        val q = params.entries.joinToString("&") { (k, v) ->
+            "${URLEncoder.encode(k, \"UTF-8\")}=${URLEncoder.encode(v, \"UTF-8\")}"
+        }
+        return "$b?$q"
+    }
+
+    fun login(baseUrl: String, username: String, password: String): Result {
+        return try {
+            val data = JSONObject().apply {
+                put("username", username)
+                put("password", password)
+            }
+            val url = buildUrl(baseUrl, mapOf(
+                "action" to "login",
+                "data" to data.toString()
+            ))
+            val obj = parseJson(getText(url))
+            if (obj.optBoolean("success", false) && obj.has("token")) {
+                Result(true, "ورود موفق", token = obj.optString("token"))
+            } else {
+                Result(false, obj.optString("message", "ورود ناموفق"))
+            }
+        } catch (e: Exception) {
+            Result(false, e.message ?: "خطای شبکه")
+        }
+    }
+
+    fun fetchAll(baseUrl: String, token: String, selectedGroup: String): Result {
+        return try {
+            val groupsUrl = buildUrl(baseUrl, mapOf(
+                "action" to "getGroups",
+                "token" to token
+            ))
+            val groupsObj = parseJson(getText(groupsUrl))
+            if (groupsObj.has("message") && !groupsObj.optBoolean("success", true)) {
+                return Result(false, groupsObj.optString("message", "خطا در گروه‌ها"))
+            }
+
+            val groupsMap = mutableMapOf<String, GroupItem>()
+            val gObj = groupsObj.optJSONObject("groups")
+            if (gObj != null) {
+                val keys = gObj.keys()
+                while (keys.hasNext()) {
+                    val k = keys.next()
+                    val g = gObj.getJSONObject(k)
+                    groupsMap[k] = GroupItem(
+                        key = k,
+                        name = g.optString("name", k),
+                        color = g.optString("color", "#5B6B7A")
+                    )
+                }
+            }
+            if (!groupsMap.containsKey("none")) {
+                groupsMap["none"] = GroupItem("none", "بدون گروه")
+            }
+
+            val tasksData = JSONObject().apply {
+                put("page", 0)
+                put("limit", 80)
+            }
+            val tasksUrl = buildUrl(baseUrl, mapOf(
+                "action" to "getTasks",
+                "token" to token,
+                "data" to tasksData.toString()
+            ))
+            val tasksObj = parseJson(getText(tasksUrl))
+            if (tasksObj.has("message") && !tasksObj.optBoolean("success", true)) {
+                return Result(false, tasksObj.optString("message", "خطا در تسک‌ها"))
+            }
+
+            val tasks = mutableListOf<TaskItem>()
+            val arr = tasksObj.optJSONArray("tasks") ?: JSONArray()
+            for (i in 0 until arr.length()) {
+                val o = arr.getJSONObject(i)
+                tasks.add(
+                    TaskItem(
+                        id = o.optString("id"),
+                        title = o.optString("title"),
+                        status = o.optString("status", "todo"),
+                        priority = o.optInt("priority", 0),
+                        date = o.optString("date"),
+                        created = o.optString("created"),
+                        group = o.optString("group", "none"),
+                        notes = o.optString("notes")
+                    )
+                )
+            }
+
+            Result(
+                true, "موفق",
+                cache = WidgetCache(
+                    tasks = tasks,
+                    groups = groupsMap,
+                    selectedGroupKey = selectedGroup,
+                    updatedAt = nowTime(),
+                    offline = false
+                )
+            )
+        } catch (e: Exception) {
+            Result(false, e.message ?: "خطای شبکه")
+        }
+    }
+
+    fun addTask(baseUrl: String, token: String, title: String): Result {
+        return try {
+            val task = JSONObject().apply {
+                put("id", java.util.UUID.randomUUID().toString())
+                put("title", title)
+                put("status", "todo")
+                put("priority", 0)
+                put("date", "")
+                put("created", "")
+                put("group", "none")
+                put("tags", JSONArray())
+                put("notes", "")
+                put("mainTask", JSONObject.NULL)
+                put("subtasks", JSONArray())
+            }
+            val url = buildUrl(baseUrl, mapOf(
+                "action" to "addTask",
+                "token" to token,
+                "data" to task.toString()
+            ))
+            val obj = parseJson(getText(url))
+            if (obj.optBoolean("success", false)) {
+                Result(true, "تسک اضافه شد")
+            } else {
+                Result(false, obj.optString("message", "خطا در افزودن"))
+            }
+        } catch (e: Exception) {
+            Result(false, e.message ?: "خطای شبکه")
+        }
+    }
+
+    fun toggleTaskDone(baseUrl: String, token: String, task: TaskItem): Result {
+        return try {
+            val newStatus = if (task.status == "done") "todo" else "done"
+            val taskJson = JSONObject().apply {
+                put("id", task.id)
+                put("title", task.title)
+                put("status", newStatus)
+                put("priority", task.priority)
+                put("date", task.date)
+                put("created", task.created)
+                put("group", task.group)
+                put("tags", JSONArray())
+                put("notes", task.notes)
+                put("mainTask", JSONObject.NULL)
+                put("subtasks", JSONArray())
+                if (newStatus == "done") put("doneAt", nowTime())
+            }
+            val url = buildUrl(baseUrl, mapOf(
+                "action" to "updateTask",
+                "token" to token,
+                "data" to taskJson.toString()
+            ))
+            val obj = parseJson(getText(url))
+            if (obj.optBoolean("success", false)) {
+                Result(true, "وضعیت به‌روز شد")
+            } else {
+                Result(false, obj.optString("message", "خطا"))
+            }
+        } catch (e: Exception) {
+            Result(false, e.message ?: "خطای شبکه")
+        }
     }
 
     private fun nowTime(): String {

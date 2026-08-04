@@ -30,7 +30,8 @@ class ConfigActivity : AppCompatActivity() {
         val btnTest = findViewById<Button>(R.id.btn_test)
         val tvStatus = findViewById<TextView>(R.id.tv_status)
 
-        etUrl.setText(Prefs.run { webappUrl })
+        val savedUrl = Prefs.run { webappUrl }
+        etUrl.setText(if (savedUrl.isBlank()) ApiClient.DEFAULT_WEBAPP_URL else savedUrl)
         etUser.setText(Prefs.run { username })
 
         spinner.adapter = ArrayAdapter(
