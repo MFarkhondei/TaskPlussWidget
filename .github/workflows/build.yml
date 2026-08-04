@@ -30,26 +30,13 @@ jobs:
       - name: Create local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
-      - name: Download Vazirmatn font
-        run: |
-          mkdir -p app/src/main/res/font
-          curl -fsSL -o app/src/main/res/font/vazirmatn_regular.ttf \
-            "https://github.com/rastikerdar/vazirmatn/raw/v33.003/fonts/ttf/Vazirmatn-Regular.ttf" || \
-          curl -fsSL -o app/src/main/res/font/vazirmatn_regular.ttf \
-            "https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/ttf/Vazirmatn-Regular.ttf"
-          curl -fsSL -o app/src/main/res/font/vazirmatn_bold.ttf \
-            "https://github.com/rastikerdar/vazirmatn/raw/v33.003/fonts/ttf/Vazirmatn-Bold.ttf" || \
-          curl -fsSL -o app/src/main/res/font/vazirmatn_bold.ttf \
-            "https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/ttf/Vazirmatn-Bold.ttf"
-          ls -la app/src/main/res/font/
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: wrapper
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace --no-daemon
+        run: ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
