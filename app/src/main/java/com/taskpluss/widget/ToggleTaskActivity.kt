@@ -43,7 +43,10 @@ class ToggleTaskActivity : Activity() {
                 }
                 WidgetRenderer.fetchAndApply(appCtx)
             } finally {
-                runOnUiThread { finish() }
+                runOnUiThread {
+                    finish()
+                    moveTaskToBack(true)
+                }
             }
         }
     }

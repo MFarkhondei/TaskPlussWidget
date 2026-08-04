@@ -21,7 +21,10 @@ class GroupSelectActivity : Activity() {
             try {
                 WidgetRenderer.fetchAndApply(appCtx)
             } finally {
-                runOnUiThread { finish() }
+                runOnUiThread {
+                    finish()
+                    moveTaskToBack(true)
+                }
             }
         }
     }
