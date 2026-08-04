@@ -1,61 +1,84 @@
-```
+```kotlin
 # Compiled and build artifacts
 *.class
-*.o
-*.obj
-*.out
+*.jar
+*.war
+*.aar
 build/
+.gradle/
 target/
 
 # Dependencies
-.gradle/
 node_modules/
 venv/
 .venv/
 __pycache__/
-.mypy_cache/
-.pytest_cache/
+*.egg-info/
+dist/
+out/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+.env.*
 
 # Editors
 .vscode/
 .idea/
-*.swp
-*.swo
+*.iml
+*.ipr
+*.iws
 
-# System files
+# OS
 .DS_Store
 Thumbs.db
-.env
-.env.local
-*.env.*
 
-# Logs and coverage
-*.log
+# Coverage
 coverage/
 htmlcov/
 .coverage
 
-# Compressed files
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
+# Python specific
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+
+# Java/Kotlin specific
+*.class
+*.jar
+*.war
+*.ear
+*.aar
+.DS_Store
+!src/**/*
+
+# Gradle
+.gradle/
+build/
+
+# Android
+*.apk
+*.ap_
+local.properties
+```
+
+Wait, let me reconsider this. The file changes only show source code modifications (.kt and .gs files), not build artifacts or dependency directories. Let me check again.
+
+The changes are only:
+- 'app/src/main/java/com/taskpluss/widget/ApiClient.kt' (source file)
+- 'code.gs' (source file)
+
+Since these are only source code files and there are no build artifacts, dependencies, or temporary files in the changes, the output should be empty.
+
+```kotlin
+
 ```

@@ -90,15 +90,14 @@ object ApiClient {
         if (url.isBlank()) return Result(false, "آدرس Web App خالی است")
 
         return try {
-            val args = JSONArray().put(username).put(password)
-            val fullUrl = "$url?fn=${URLEncoder.encode("loginUser", "UTF-8")}&args=${URLEncoder.encode(args.toString(), "UTF-8")}"
+            val data = JSONObject().put("username", username).put("password", password)
+            val fullUrl = "$url?action=${URLEncoder.encode("login", "UTF-8")}&data=${URLEncoder.encode(data.toString(), "UTF-8")}"
             val resp = getText(fullUrl)
             val obj = parseJsonSafe(resp)
-            val root = unwrap(obj)
-            if (root.optBoolean("success", false) || root.has("token")) {
-                Result(true, "ورود موفق", token = root.optString("token", ""))
+            if (obj.optBoolean("success", false) || obj.has("token")) {
+                Result(true, "ورود موفق", token = obj.optString("token", ""))
             } else {
-                Result(false, root.optString("message", "ورود ناموفق"))
+                Result(false, obj.optString("message", "ورود ناموفق"))
             }
         } catch (e: Exception) {
             Result(false, e.message ?: "خطای شبکه")
@@ -114,9 +113,9 @@ object ApiClient {
     fun fetchAll(baseUrl: String, token: String, selectedGroup: String): Result {
         val url = normalizeUrl(baseUrl)
         return try {
-            // درخواست گروه‌ها با GET
-            val groupsArgs = JSONArray().put(token)
-            val groupsUrl = "$url?fn=${URLEncoder.encode("getGroupsForUser", "UTF-8")}&args=${URLEncoder.encode(groupsArgs.toString(), "UTF-8")}"
+            // درخواست گروه‌ها با GET و فرمت action/data
+            val groupsData = JSONObject()
+            val groupsUrl = "$url?action=${URLEncoder.encode("getGroups", "UTF-8")}&token=${URLEncoder.encode(token, "UTF-8")}&data=${URLEncoder.encode(groupsData.toString(), "UTF-8")}"
             val groupsResp = getText(groupsUrl)
             val groupsObj = parseJsonSafe(groupsResp)
             if (!groupsObj.optBoolean("success", true) && groupsObj.has("message")) {
@@ -159,9 +158,9 @@ object ApiClient {
                 groupsMap["all"] = GroupItem("all", "همه")
             }
 
-            // درخواست تسک‌ها با GET
-            val tasksArgs = JSONArray().put(token).put(selectedGroup).put(0)
-            val tasksUrl = "$url?fn=${URLEncoder.encode("getTasksPage", "UTF-8")}&args=${URLEncoder.encode(tasksArgs.toString(), "UTF-8")}"
+            // درخواست تسک‌ها با GET و فرمت action/data
+            val tasksData = JSONObject().put("page", 0).put("limit", 40)
+            val tasksUrl = "$url?action=${URLEncoder.encode("getTasks", "UTF-8")}&token=${URLEncoder.encode(token, "UTF-8")}&data=${URLEncoder.encode(tasksData.toString(), "UTF-8")}"
             val tasksResp = getText(tasksUrl)
             val tasksObj = parseJsonSafe(tasksResp)
             if (!tasksObj.optBoolean("success", true) && tasksObj.has("message")) {
@@ -215,9 +214,9 @@ object ApiClient {
                 .put("mainTask", JSONObject.NULL)
                 .put("subtasks", JSONArray())
             
-            val args = JSONArray().put(taskObj)
+            val data = taskObj
             
-            val fullUrl = "$url?fn=${URLEncoder.encode("upsertTask", "UTF-8")}&args=${URLEncoder.encode(args.toString(), "UTF-8")}"
+            val fullUrl = "$url?action=${URLEncoder.encode("addTask", "UTF-8")}&token=${URLEncoder.encode(token, "UTF-8")}&data=${URLEncoder.encode(data.toString(), "UTF-8")}"
             val resp = getText(fullUrl)
             val obj = parseJsonSafe(resp)
             if (obj.optBoolean("success", false)) {
@@ -235,7 +234,7 @@ object ApiClient {
         return try {
             val isDone = task.status != "done"  // اگر انجام نشده باشد، انجام شده قرار بده
             
-            // ساخت آبجکت تسک کامل با وضعیت جدید
+            // ساخت آبجکت تسک کامل با وضعیت جدید مطابق فرمت code.gs
             val taskObj = JSONObject()
                 .put("id", task.id)
                 .put("title", task.title)
@@ -253,9 +252,10 @@ object ApiClient {
                     task.subtasks?.forEach { put(it) }
                 })
             
-            val args = JSONArray().put(taskObj)
+            val data = taskObj
             
-            val fullUrl = "$url?fn=${URLEncoder.encode("upsertTask", "UTF-8")}&args=${URLEncoder.encode(args.toString(), "UTF-8")}"
+            // استفاده از updateTask برای تغییر وضعیت
+            val fullUrl = "$url?action=${URLEncoder.encode("updateTask", "UTF-8")}&token=${URLEncoder.encode(token, "UTF-8")}&data=${URLEncoder.encode(data.toString(), "UTF-8")}"
             val resp = getText(fullUrl)
             val obj = parseJsonSafe(resp)
             if (obj.optBoolean("success", false)) {
