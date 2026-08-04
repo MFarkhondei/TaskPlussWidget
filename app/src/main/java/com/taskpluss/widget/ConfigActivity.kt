@@ -30,16 +30,16 @@ class ConfigActivity : AppCompatActivity() {
         val btnTest = findViewById<Button>(R.id.btn_test)
         val tvStatus = findViewById<TextView>(R.id.tv_status)
 
-        val savedUrl = Prefs.run { webappUrl }
+        val savedUrl = Prefs.webappUrl(this)
         etUrl.setText(if (savedUrl.isBlank()) ApiClient.DEFAULT_WEBAPP_URL else savedUrl)
-        etUser.setText(Prefs.run { username })
+        etUser.setText(Prefs.username(this))
 
         spinner.adapter = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_dropdown_item,
             intervalLabels
         )
-        val currentInterval = Prefs.run { intervalMin }
+        val currentInterval = Prefs.intervalMin(this)
         val idx = intervals.indexOf(currentInterval).coerceAtLeast(0)
         spinner.setSelection(idx)
 
@@ -47,7 +47,7 @@ class ConfigActivity : AppCompatActivity() {
             val url = ApiClient.normalizeUrl(etUrl.text?.toString().orEmpty())
             etUrl.setText(url)
             val user = etUser.text?.toString()?.trim().orEmpty()
-            val pass = etPass.text?.toString()?.orEmpty() ?: ""
+            val pass = etPass.text?.toString().orEmpty()
             if (url.isBlank() || user.isBlank() || pass.isBlank()) {
                 tvStatus.text = "همه فیلدها را پر کنید"
                 return@setOnClickListener
@@ -65,21 +65,22 @@ class ConfigActivity : AppCompatActivity() {
                     ApiClient.login(url, user, pass)
                 }
                 if (result.success && !result.token.isNullOrBlank()) {
-                    Prefs.run {
-                        webappUrl = url
-                        username = user
-                        token = result.token!!
-                        intervalMin = intervals[spinner.selectedItemPosition]
-                    }
+                    Prefs.setWebappUrl(this@ConfigActivity, url)
+                    Prefs.setUsername(this@ConfigActivity, user)
+                    Prefs.setToken(this@ConfigActivity, result.token!!)
+                    Prefs.setIntervalMin(
+                        this@ConfigActivity,
+                        intervals[spinner.selectedItemPosition]
+                    )
                     AlarmHelper.schedule(this@ConfigActivity)
-                    tvStatus.text = "ورود موفق — در حال دریافت داده…"
+                    tvStatus.text = "ورود موفق — در حال بارگذاری…"
                     withContext(Dispatchers.IO) {
                         WidgetRenderer.fetchAndApply(this@ConfigActivity)
                     }
-                    tvStatus.text = "ذخیره و به‌روزرسانی شد"
+                    tvStatus.text = "آماده است"
                     Toast.makeText(this@ConfigActivity, "آماده است", Toast.LENGTH_SHORT).show()
                 } else {
-                    tvStatus.text = result.message
+                    tvStatus.text = result.message.ifBlank { "ورود ناموفق" }
                 }
                 btnLogin.isEnabled = true
             }
@@ -92,10 +93,8 @@ class ConfigActivity : AppCompatActivity() {
                 tvStatus.text = "آدرس Web App را وارد کنید"
                 return@setOnClickListener
             }
-            Prefs.run {
-                webappUrl = url
-                intervalMin = intervals[spinner.selectedItemPosition]
-            }
+            Prefs.setWebappUrl(this, url)
+            Prefs.setIntervalMin(this, intervals[spinner.selectedItemPosition])
             AlarmHelper.schedule(this)
             tvStatus.text = "در حال رفرش…"
             CoroutineScope(Dispatchers.Main).launch {

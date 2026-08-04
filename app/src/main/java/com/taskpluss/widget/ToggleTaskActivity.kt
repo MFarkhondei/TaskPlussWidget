@@ -10,21 +10,18 @@ class ToggleTaskActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val taskId = intent.getStringExtra("task_id") ?: run {
-            finish()
-            return
+            finish(); return
         }
-
         val appCtx = applicationContext
-        val cacheHint = Prefs.run { loadCache() }.copy(updatedAt = "…")
+        val cacheHint = Prefs.loadCache(this).copy(updatedAt = "…")
         WidgetRenderer.applyData(this, cacheHint)
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val baseUrl = Prefs.run { appCtx.webappUrl }
-                val token = Prefs.run { appCtx.token }
-                val cache = Prefs.run { appCtx.loadCache() }
+                val baseUrl = Prefs.webappUrl(appCtx)
+                val token = Prefs.token(appCtx)
+                val cache = Prefs.loadCache(appCtx)
                 val task = cache.tasks.find { it.id == taskId }
-
                 if (task != null && baseUrl.isNotBlank() && token.isNotBlank()) {
                     val result = ApiClient.toggleTaskDone(baseUrl, token, task)
                     if (result.success) {
@@ -37,7 +34,7 @@ class ToggleTaskActivity : Activity() {
                             offline = false,
                             updatedAt = JalaliUtils.nowTehranJalaliString()
                         )
-                        Prefs.run { appCtx.saveCache(newCache) }
+                        Prefs.saveCache(appCtx, newCache)
                         WidgetRenderer.applyData(appCtx, newCache)
                     }
                 }

@@ -10,10 +10,9 @@ class GroupSelectActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val key = intent.getStringExtra("group_key") ?: "all"
-        Prefs.run { selectedGroupKey = key }
-
-        val cache = Prefs.run { loadCache() }.copy(selectedGroupKey = key)
-        Prefs.run { saveCache(cache) }
+        Prefs.setSelectedGroupKey(this, key)
+        val cache = Prefs.loadCache(this).copy(selectedGroupKey = key)
+        Prefs.saveCache(this, cache)
         WidgetRenderer.applyData(this, cache)
 
         val appCtx = applicationContext

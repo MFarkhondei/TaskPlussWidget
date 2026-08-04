@@ -6,11 +6,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-/** رفرش دستی — همان IO + ApiClient مسیر تنظیمات */
+/** رفرش دستی — همان مسیر شبکه تنظیمات (Activity شفاف بدون dim) */
 class SilentRefreshActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val cache = Prefs.run { loadCache() }.copy(updatedAt = "در حال به‌روزرسانی…", offline = false)
+        val cache = Prefs.loadCache(this).copy(updatedAt = "در حال به‌روزرسانی…", offline = false)
         WidgetRenderer.applyData(this, cache)
 
         val appCtx = applicationContext

@@ -12,7 +12,7 @@ object AlarmHelper {
     private const val REQ = 9001
 
     fun schedule(context: Context) {
-        val minutes = Prefs.run { context.intervalMin }
+        val minutes = Prefs.intervalMin(context)
         cancel(context)
         if (minutes <= 0) return
 

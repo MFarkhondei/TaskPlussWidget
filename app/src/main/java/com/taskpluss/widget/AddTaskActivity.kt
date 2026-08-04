@@ -21,7 +21,7 @@ class AddTaskActivity : AppCompatActivity() {
         val btnClose = findViewById<Button>(R.id.btn_close)
         val tvStatus = findViewById<TextView>(R.id.tv_add_status)
 
-        btnClose.setOnClickListener { finishAndGoHome() }
+        btnClose.setOnClickListener { goHome() }
 
         btnSave.setOnClickListener {
             val title = etTitle.text?.toString()?.trim().orEmpty()
@@ -29,8 +29,8 @@ class AddTaskActivity : AppCompatActivity() {
                 tvStatus.text = "عنوان را وارد کنید"
                 return@setOnClickListener
             }
-            val baseUrl = Prefs.run { webappUrl }
-            val token = Prefs.run { token }
+            val baseUrl = Prefs.webappUrl(this)
+            val token = Prefs.token(this)
             if (baseUrl.isBlank() || token.isBlank()) {
                 tvStatus.text = "ابتدا از تنظیمات وارد شوید"
                 return@setOnClickListener
@@ -47,10 +47,10 @@ class AddTaskActivity : AppCompatActivity() {
                 if (result.success) {
                     Toast.makeText(this@AddTaskActivity, "تسک اضافه شد", Toast.LENGTH_SHORT).show()
                     val appCtx = applicationContext
-                    finishAndGoHome()
                     CoroutineScope(Dispatchers.IO).launch {
                         WidgetRenderer.fetchAndApply(appCtx)
                     }
+                    goHome()
                 } else {
                     tvStatus.text = result.message
                     btnSave.isEnabled = true
@@ -60,13 +60,8 @@ class AddTaskActivity : AppCompatActivity() {
         }
     }
 
-    private fun finishAndGoHome() {
+    private fun goHome() {
         finish()
         moveTaskToBack(true)
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        finishAndGoHome()
     }
 }
