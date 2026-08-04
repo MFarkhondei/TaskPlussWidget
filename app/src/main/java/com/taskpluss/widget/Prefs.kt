@@ -12,75 +12,83 @@ object Prefs {
     private const val NAME = "taskpluss_widget_prefs"
 
     private fun sp(ctx: Context): SharedPreferences =
-        ctx.getSharedPreferences(NAME, Context.MODE_PRIVATE)
+        ctx.applicationContext.getSharedPreferences(NAME, Context.MODE_PRIVATE)
 
     var Context.webappUrl: String
         get() = sp(this).getString("webapp_url", "") ?: ""
-        set(v) = sp(this).edit().putString("webapp_url", v).apply()
+        set(v) { sp(this).edit().putString("webapp_url", v).apply() }
 
     var Context.username: String
         get() = sp(this).getString("username", "") ?: ""
-        set(v) = sp(this).edit().putString("username", v).apply()
+        set(v) { sp(this).edit().putString("username", v).apply() }
 
     var Context.token: String
         get() = sp(this).getString("token", "") ?: ""
-        set(v) = sp(this).edit().putString("token", v).apply()
+        set(v) { sp(this).edit().putString("token", v).apply() }
 
     var Context.intervalMin: Int
         get() = sp(this).getInt("interval_min", 30)
-        set(v) = sp(this).edit().putInt("interval_min", v).apply()
+        set(v) { sp(this).edit().putInt("interval_min", v).apply() }
 
     var Context.selectedGroupKey: String
         get() = sp(this).getString("selected_group", "all") ?: "all"
-        set(v) = sp(this).edit().putString("selected_group", v).apply()
+        set(v) { sp(this).edit().putString("selected_group", v).apply() }
+
+    var Context.groupPage: Int
+        get() = sp(this).getInt("group_page", 0)
+        set(v) { sp(this).edit().putInt("group_page", v).apply() }
 
     var Context.cacheJson: String
         get() = sp(this).getString("cache_json", "") ?: ""
-        set(v) = sp(this).edit().putString("cache_json", v).apply()
+        set(v) { sp(this).edit().putString("cache_json", v).apply() }
 
     var Context.cacheAt: Long
         get() = sp(this).getLong("cache_at", 0L)
-        set(v) = sp(this).edit().putLong("cache_at", v).apply()
+        set(v) { sp(this).edit().putLong("cache_at", v).apply() }
 
-    fun Context.saveCache(cache: WidgetCache) {
+    fun webappUrl(ctx: Context) = ctx.webappUrl
+    fun token(ctx: Context) = ctx.token
+    fun username(ctx: Context) = ctx.username
+    fun intervalMin(ctx: Context) = ctx.intervalMin
+    fun selectedGroupKey(ctx: Context) = ctx.selectedGroupKey
+    fun groupPage(ctx: Context) = ctx.groupPage
+
+    fun setWebappUrl(ctx: Context, v: String) { ctx.webappUrl = v }
+    fun setToken(ctx: Context, v: String) { ctx.token = v }
+    fun setUsername(ctx: Context, v: String) { ctx.username = v }
+    fun setIntervalMin(ctx: Context, v: Int) { ctx.intervalMin = v }
+    fun setSelectedGroupKey(ctx: Context, v: String) { ctx.selectedGroupKey = v }
+    fun setGroupPage(ctx: Context, v: Int) { ctx.groupPage = v }
+
+    fun saveCache(ctx: Context, cache: WidgetCache) {
         val root = JSONObject()
         root.put("updatedAt", cache.updatedAt)
         root.put("offline", cache.offline)
         root.put("selectedGroupKey", cache.selectedGroupKey)
-
         val tasksArr = JSONArray()
         cache.tasks.forEach { t ->
             tasksArr.put(JSONObject().apply {
-                put("id", t.id)
-                put("title", t.title)
-                put("status", t.status)
-                put("priority", t.priority)
-                put("date", t.date)
-                put("created", t.created)
-                put("group", t.group)
-                put("notes", t.notes)
+                put("id", t.id); put("title", t.title); put("status", t.status)
+                put("priority", t.priority); put("date", t.date); put("created", t.created)
+                put("group", t.group); put("notes", t.notes)
             })
         }
         root.put("tasks", tasksArr)
-
         val groupsObj = JSONObject()
         cache.groups.forEach { (k, g) ->
             groupsObj.put(k, JSONObject().apply {
-                put("key", g.key)
-                put("name", g.name)
-                put("color", g.color)
+                put("key", g.key); put("name", g.name); put("color", g.color)
             })
         }
         root.put("groups", groupsObj)
-
-        cacheJson = root.toString()
-        cacheAt = System.currentTimeMillis()
-        selectedGroupKey = cache.selectedGroupKey
+        ctx.cacheJson = root.toString()
+        ctx.cacheAt = System.currentTimeMillis()
+        ctx.selectedGroupKey = cache.selectedGroupKey
     }
 
-    fun Context.loadCache(): WidgetCache {
-        val raw = cacheJson
-        if (raw.isBlank()) return WidgetCache(selectedGroupKey = selectedGroupKey)
+    fun loadCache(ctx: Context): WidgetCache {
+        val raw = ctx.cacheJson
+        if (raw.isBlank()) return WidgetCache(selectedGroupKey = ctx.selectedGroupKey)
         return try {
             val root = JSONObject(raw)
             val tasks = mutableListOf<TaskItem>()
@@ -117,12 +125,12 @@ object Prefs {
             WidgetCache(
                 tasks = tasks,
                 groups = groups,
-                selectedGroupKey = root.optString("selectedGroupKey", selectedGroupKey),
+                selectedGroupKey = root.optString("selectedGroupKey", ctx.selectedGroupKey),
                 updatedAt = root.optString("updatedAt"),
                 offline = root.optBoolean("offline", false)
             )
         } catch (_: Exception) {
-            WidgetCache(selectedGroupKey = selectedGroupKey)
+            WidgetCache(selectedGroupKey = ctx.selectedGroupKey)
         }
     }
 }
