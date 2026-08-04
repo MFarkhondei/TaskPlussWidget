@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.TaskPlussWidget" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="colorPrimary">#F5C542</item>
+        <item name="colorPrimaryVariant">#D4A017</item>
+        <item name="colorOnPrimary">#0A0F1A</item>
+        <item name="colorSecondary">#34D399</item>
+        <item name="android:statusBarColor">#0A0F1A</item>
+        <item name="android:windowBackground">#0A0F1A</item>
+        <item name="android:textColorPrimary">#F8FAFC</item>
+        <item name="android:textColorSecondary">#94A3B8</item>
+    </style>
+
+    <style name="Theme.TaskPlussWidget.Transparent" parent="Theme.TaskPlussWidget">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+</resources>

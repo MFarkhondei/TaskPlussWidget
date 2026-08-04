@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">تسک پلاس</string>
+    <string name="widget_name">تسک پلاس</string>
+    <string name="widget_description">مدیریت سریع تسک‌ها روی صفحه اصلی</string>
+    <string name="add_task">افزودن تسک</string>
+    <string name="all_tasks">همه</string>
+    <string name="no_tasks">تسکی وجود ندارد</string>
+    <string name="offline">آفلاین</string>
+    <string name="updating">در حال به‌روزرسانی…</string>
+    <string name="config_title">تنظیمات تسک پلاس</string>
+    <string name="webapp_url_hint">آدرس Web App (exec)</string>
+    <string name="username_hint">نام کاربری (ایمیل)</string>
+    <string name="password_hint">رمز عبور</string>
+    <string name="token_hint">توکن (اختیاری اگر لاگین کنید)</string>
+    <string name="login">ورود</string>
+    <string name="save">ذخیره</string>
+    <string name="test_connection">تست اتصال</string>
+    <string name="interval_label">فاصله به‌روزرسانی خودکار</string>
+    <string name="task_title_hint">عنوان تسک جدید…</string>
+    <string name="save_task">ذخیره تسک</string>
+    <string name="status_todo">انجام‌نشده</string>
+    <string name="status_done">انجام‌شده</string>
+</resources>

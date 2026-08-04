@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- فقط LinearLayout + TextView + ImageView — مطابق محدودیت RemoteViews و سامسونگ -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/bg_widget"
+    android:padding="12dp"
+    android:layoutDirection="rtl">
+
+    <!-- ===== هدر ===== -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layoutDirection="ltr"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="تسک پلاس"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#F5C542"
+            android:gravity="start|center_vertical" />
+
+        <TextView
+            android:id="@+id/tv_updated"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="—"
+            android:textSize="11sp"
+            android:textColor="#64748B"
+            android:paddingEnd="8dp"
+            android:paddingStart="4dp" />
+
+        <ImageView
+            android:id="@+id/iv_refresh"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_refresh"
+            android:contentDescription="رفرش"
+            android:padding="2dp" />
+    </LinearLayout>
+
+    <!-- ===== دکمه افزودن تسک ===== -->
+    <LinearLayout
+        android:id="@+id/btn_add_task"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_add_btn"
+        android:gravity="center"
+        android:padding="10dp"
+        android:layout_marginBottom="10dp">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_add"
+            android:contentDescription="افزودن" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="افزودن تسک جدید"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#0A0F1A"
+            android:paddingStart="8dp"
+            android:paddingEnd="0dp" />
+    </LinearLayout>
+
+    <!-- ===== چیپ‌های گروه (ثابت، بدون اسکرول) ===== -->
+    <LinearLayout
+        android:id="@+id/row_groups"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layoutDirection="rtl"
+        android:paddingBottom="8dp">
+
+        <!-- گروه ۰: همه -->
+        <TextView
+            android:id="@+id/chip_group_0"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="همه"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="#F5C542"
+            android:background="@drawable/bg_chip_selected"
+            android:gravity="center"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:layout_marginEnd="4dp"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/chip_group_1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="—"
+            android:textSize="12sp"
+            android:textColor="#94A3B8"
+            android:background="@drawable/bg_chip"
+            android:gravity="center"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:layout_marginEnd="4dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/chip_group_2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="—"
+            android:textSize="12sp"
+            android:textColor="#94A3B8"
+            android:background="@drawable/bg_chip"
+            android:gravity="center"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:layout_marginEnd="4dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/chip_group_3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="—"
+            android:textSize="12sp"
+            android:textColor="#94A3B8"
+            android:background="@drawable/bg_chip"
+            android:gravity="center"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:layout_marginEnd="4dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/chip_group_4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="—"
+            android:textSize="12sp"
+            android:textColor="#94A3B8"
+            android:background="@drawable/bg_chip"
+            android:gravity="center"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- ===== لیست تسک‌ها (حداکثر ۶ ردیف ثابت) ===== -->
+    <!-- ردیف ۱ -->
+    <LinearLayout
+        android:id="@+id/row_task_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_task_row"
+        android:gravity="center_vertical"
+        android:padding="8dp"
+        android:layout_marginBottom="4dp"
+        android:layoutDirection="rtl"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/iv_check_1"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_check_empty"
+            android:contentDescription="وضعیت" />
+
+        <TextView
+            android:id="@+id/tv_task_1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=""
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#F8FAFC"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:paddingStart="8dp"
+            android:paddingEnd="4dp" />
+
+        <TextView
+            android:id="@+id/tv_priority_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="10sp"
+            android:textColor="#F5C542"
+            android:paddingStart="4dp" />
+    </LinearLayout>
+
+    <!-- ردیف ۲ -->
+    <LinearLayout
+        android:id="@+id/row_task_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_task_row"
+        android:gravity="center_vertical"
+        android:padding="8dp"
+        android:layout_marginBottom="4dp"
+        android:layoutDirection="rtl"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/iv_check_2"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_check_empty"
+            android:contentDescription="وضعیت" />
+
+        <TextView
+            android:id="@+id/tv_task_2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=""
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#F8FAFC"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:paddingStart="8dp"
+            android:paddingEnd="4dp" />
+
+        <TextView
+            android:id="@+id/tv_priority_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="10sp"
+            android:textColor="#F5C542"
+            android:paddingStart="4dp" />
+    </LinearLayout>
+
+    <!-- ردیف ۳ -->
+    <LinearLayout
+        android:id="@+id/row_task_3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_task_row"
+        android:gravity="center_vertical"
+        android:padding="8dp"
+        android:layout_marginBottom="4dp"
+        android:layoutDirection="rtl"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/iv_check_3"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_check_empty"
+            android:contentDescription="وضعیت" />
+
+        <TextView
+            android:id="@+id/tv_task_3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=""
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#F8FAFC"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:paddingStart="8dp"
+            android:paddingEnd="4dp" />
+
+        <TextView
+            android:id="@+id/tv_priority_3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="10sp"
+            android:textColor="#F5C542"
+            android:paddingStart="4dp" />
+    </LinearLayout>
+
+    <!-- ردیف ۴ -->
+    <LinearLayout
+        android:id="@+id/row_task_4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_task_row"
+        android:gravity="center_vertical"
+        android:padding="8dp"
+        android:layout_marginBottom="4dp"
+        android:layoutDirection="rtl"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/iv_check_4"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_check_empty"
+            android:contentDescription="وضعیت" />
+
+        <TextView
+            android:id="@+id/tv_task_4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=""
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#F8FAFC"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:paddingStart="8dp"
+            android:paddingEnd="4dp" />
+
+        <TextView
+            android:id="@+id/tv_priority_4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="10sp"
+            android:textColor="#F5C542"
+            android:paddingStart="4dp" />
+    </LinearLayout>
+
+    <!-- ردیف ۵ -->
+    <LinearLayout
+        android:id="@+id/row_task_5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_task_row"
+        android:gravity="center_vertical"
+        android:padding="8dp"
+        android:layout_marginBottom="4dp"
+        android:layoutDirection="rtl"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/iv_check_5"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_check_empty"
+            android:contentDescription="وضعیت" />
+
+        <TextView
+            android:id="@+id/tv_task_5"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=""
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#F8FAFC"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:paddingStart="8dp"
+            android:paddingEnd="4dp" />
+
+        <TextView
+            android:id="@+id/tv_priority_5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="10sp"
+            android:textColor="#F5C542"
+            android:paddingStart="4dp" />
+    </LinearLayout>
+
+    <!-- ردیف ۶ -->
+    <LinearLayout
+        android:id="@+id/row_task_6"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_task_row"
+        android:gravity="center_vertical"
+        android:padding="8dp"
+        android:layout_marginBottom="4dp"
+        android:layoutDirection="rtl"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/iv_check_6"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_check_empty"
+            android:contentDescription="وضعیت" />
+
+        <TextView
+            android:id="@+id/tv_task_6"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=""
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#F8FAFC"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:paddingStart="8dp"
+            android:paddingEnd="4dp" />
+
+        <TextView
+            android:id="@+id/tv_priority_6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="10sp"
+            android:textColor="#F5C542"
+            android:paddingStart="4dp" />
+    </LinearLayout>
+
+    <!-- پیام خالی -->
+    <TextView
+        android:id="@+id/tv_empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="تسکی وجود ندارد"
+        android:textSize="13sp"
+        android:textColor="#64748B"
+        android:gravity="center"
+        android:padding="16dp"
+        android:visibility="gone" />
+
+</LinearLayout>
