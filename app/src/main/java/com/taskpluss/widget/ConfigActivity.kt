@@ -43,11 +43,17 @@ class ConfigActivity : AppCompatActivity() {
         spinner.setSelection(idx)
 
         btnLogin.setOnClickListener {
-            val url = etUrl.text?.toString()?.trim().orEmpty()
+            val url = ApiClient.normalizeUrl(etUrl.text?.toString().orEmpty())
+            etUrl.setText(url)
             val user = etUser.text?.toString()?.trim().orEmpty()
             val pass = etPass.text?.toString()?.orEmpty() ?: ""
             if (url.isBlank() || user.isBlank() || pass.isBlank()) {
                 tvStatus.text = "همه فیلدها را پر کنید"
+                return@setOnClickListener
+            }
+            if (!url.contains("/exec")) {
+                tvStatus.text =
+                    "آدرس باید به /exec ختم شود\nمثال:\nhttps://script.google.com/macros/s/XXXX/exec"
                 return@setOnClickListener
             }
             tvStatus.text = "در حال ورود…"
@@ -61,7 +67,7 @@ class ConfigActivity : AppCompatActivity() {
                     Prefs.run {
                         webappUrl = url
                         username = user
-                        token = result.token
+                        token = result.token!!
                         intervalMin = intervals[spinner.selectedItemPosition]
                     }
                     AlarmHelper.schedule(this@ConfigActivity)
@@ -79,7 +85,8 @@ class ConfigActivity : AppCompatActivity() {
         }
 
         btnTest.setOnClickListener {
-            val url = etUrl.text?.toString()?.trim().orEmpty()
+            val url = ApiClient.normalizeUrl(etUrl.text?.toString().orEmpty())
+            etUrl.setText(url)
             if (url.isBlank()) {
                 tvStatus.text = "آدرس Web App را وارد کنید"
                 return@setOnClickListener
