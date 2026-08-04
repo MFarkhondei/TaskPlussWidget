@@ -140,23 +140,15 @@ object ApiClient {
     fun fetchAll(baseUrl: String, token: String, selectedGroup: String): Result {
         val url = normalizeUrl(baseUrl)
         return try {
-            // ساخت payload به صورت رشته JSON برای ارسال در پارامتر data
-            val groupsPayload = JSONObject().apply {
-                put("fn", "getGroupsForUser")
-                put("args", JSONArray().put(token))
-            }
-            val tasksPayload = JSONObject().apply {
-                put("fn", "getTasksPage")
-                put("args", JSONArray().put(token).put(0).put(80))
-            }
-            
-            // درخواست گروه‌ها با doGet
+            // درخواست گروه‌ها با doGet - ارسال fn و args به صورت پارامترهای جداگانه
             val groupsUrl = buildString {
                 append(url)
                 append(if (url.contains("?")) "&" else "?")
                 append("action=rpc")
-                append("&data=")
-                append(URLEncoder.encode(groupsPayload.toString(), "UTF-8"))
+                append("&fn=")
+                append(URLEncoder.encode("getGroupsForUser", "UTF-8"))
+                append("&args=")
+                append(URLEncoder.encode(JSONArray().put(token).toString(), "UTF-8"))
             }
             val groupsResp = getText(groupsUrl)
             val groupsObj = parseJsonSafe(groupsResp)
@@ -182,13 +174,15 @@ object ApiClient {
                 groupsMap["none"] = GroupItem("none", "بدون گروه")
             }
 
-            // درخواست تسک‌ها با doGet
+            // درخواست تسک‌ها با doGet - ارسال fn و args به صورت پارامترهای جداگانه
             val tasksUrl = buildString {
                 append(url)
                 append(if (url.contains("?")) "&" else "?")
                 append("action=rpc")
-                append("&data=")
-                append(URLEncoder.encode(tasksPayload.toString(), "UTF-8"))
+                append("&fn=")
+                append(URLEncoder.encode("getTasksPage", "UTF-8"))
+                append("&args=")
+                append(URLEncoder.encode(JSONArray().put(token).put(0).put(80).toString(), "UTF-8"))
             }
             val tasksResp = getText(tasksUrl)
             val tasksObj = parseJsonSafe(tasksResp)
@@ -243,17 +237,15 @@ object ApiClient {
                 put("mainTask", JSONObject.NULL)
                 put("subtasks", JSONArray())
             }
-            val payload = JSONObject().apply {
-                put("fn", "upsertTask")
-                put("args", JSONArray().put(token).put(task.toString()))
-            }
-            // ارسال با doGet به جای POST
+            // ارسال با doGet به جای POST - استفاده از پارامترهای fn و args
             val reqUrl = buildString {
                 append(url)
                 append(if (url.contains("?")) "&" else "?")
                 append("action=rpc")
-                append("&data=")
-                append(URLEncoder.encode(payload.toString(), "UTF-8"))
+                append("&fn=")
+                append(URLEncoder.encode("upsertTask", "UTF-8"))
+                append("&args=")
+                append(URLEncoder.encode(JSONArray().put(token).put(task).toString(), "UTF-8"))
             }
             val resp = getText(reqUrl)
             val obj = parseJsonSafe(resp)
@@ -285,17 +277,15 @@ object ApiClient {
                 put("subtasks", JSONArray())
                 if (newStatus == "done") put("doneAt", nowTime())
             }
-            val payload = JSONObject().apply {
-                put("fn", "upsertTask")
-                put("args", JSONArray().put(token).put(taskJson.toString()))
-            }
-            // ارسال با doGet به جای POST
+            // ارسال با doGet به جای POST - استفاده از پارامترهای fn و args
             val reqUrl = buildString {
                 append(url)
                 append(if (url.contains("?")) "&" else "?")
                 append("action=rpc")
-                append("&data=")
-                append(URLEncoder.encode(payload.toString(), "UTF-8"))
+                append("&fn=")
+                append(URLEncoder.encode("upsertTask", "UTF-8"))
+                append("&args=")
+                append(URLEncoder.encode(JSONArray().put(token).put(taskJson).toString(), "UTF-8"))
             }
             val resp = getText(reqUrl)
             val obj = parseJsonSafe(resp)
