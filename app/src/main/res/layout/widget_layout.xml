@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- فقط LinearLayout + TextView + ImageView -->
+<!-- LinearLayout + TextView + ImageView + ListView (اسکرول عمودی مجاز) -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
@@ -25,8 +25,8 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="#F5C542"
+            android:fontFamily="@font/vazirmatn"
             android:gravity="start|center_vertical"
-            android:textAlignment="viewStart"
             android:layout_gravity="start|center_vertical" />
 
         <TextView
@@ -42,6 +42,7 @@
             android:text="—"
             android:textSize="11sp"
             android:textColor="#64748B"
+            android:fontFamily="@font/vazirmatn"
             android:paddingEnd="8dp"
             android:paddingStart="4dp" />
 
@@ -77,138 +78,132 @@
             android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="#0A0F1A"
-            android:paddingStart="8dp"
-            android:paddingEnd="0dp" />
+            android:fontFamily="@font/vazirmatn"
+            android:paddingStart="8dp" />
     </LinearLayout>
 
+    <!-- گروه‌ها: دکمه‌های ‹ › برای دیدن همه گروه‌ها (HorizontalScrollView در RemoteViews نیست) -->
     <LinearLayout
         android:id="@+id/row_groups"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layoutDirection="rtl"
+        android:layoutDirection="ltr"
+        android:gravity="center_vertical"
         android:paddingBottom="8dp">
 
         <TextView
-            android:id="@+id/chip_group_0"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="همه"
-            android:textSize="12sp"
+            android:id="@+id/btn_group_prev"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:text="‹"
+            android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="#F5C542"
-            android:background="@drawable/bg_chip_selected"
             android:gravity="center"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp"
-            android:layout_marginEnd="4dp"
-            android:maxLines="1"
-            android:ellipsize="end" />
+            android:background="@drawable/bg_chip" />
 
-        <TextView
-            android:id="@+id/chip_group_1"
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="—"
-            android:textSize="12sp"
-            android:textColor="#94A3B8"
-            android:background="@drawable/bg_chip"
-            android:gravity="center"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp"
-            android:layout_marginEnd="4dp"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:visibility="gone" />
+            android:orientation="horizontal"
+            android:layoutDirection="rtl"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/chip_group_0"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="همه"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="#F5C542"
+                android:fontFamily="@font/vazirmatn"
+                android:background="@drawable/bg_chip_selected"
+                android:gravity="center"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:layout_marginEnd="3dp"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/chip_group_1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="—"
+                android:textSize="12sp"
+                android:textColor="#94A3B8"
+                android:fontFamily="@font/vazirmatn"
+                android:background="@drawable/bg_chip"
+                android:gravity="center"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:layout_marginEnd="3dp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/chip_group_2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="—"
+                android:textSize="12sp"
+                android:textColor="#94A3B8"
+                android:fontFamily="@font/vazirmatn"
+                android:background="@drawable/bg_chip"
+                android:gravity="center"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:layout_marginEnd="3dp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/chip_group_3"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="—"
+                android:textSize="12sp"
+                android:textColor="#94A3B8"
+                android:fontFamily="@font/vazirmatn"
+                android:background="@drawable/bg_chip"
+                android:gravity="center"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:visibility="gone" />
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/chip_group_2"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="—"
-            android:textSize="12sp"
-            android:textColor="#94A3B8"
-            android:background="@drawable/bg_chip"
+            android:id="@+id/btn_group_next"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:text="›"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#F5C542"
             android:gravity="center"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp"
-            android:layout_marginEnd="4dp"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/chip_group_3"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="—"
-            android:textSize="12sp"
-            android:textColor="#94A3B8"
-            android:background="@drawable/bg_chip"
-            android:gravity="center"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp"
-            android:layout_marginEnd="4dp"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/chip_group_4"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="—"
-            android:textSize="12sp"
-            android:textColor="#94A3B8"
-            android:background="@drawable/bg_chip"
-            android:gravity="center"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:visibility="gone" />
+            android:background="@drawable/bg_chip" />
     </LinearLayout>
 
-    <LinearLayout android:id="@+id/row_task_1" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:background="@drawable/bg_task_row" android:gravity="center_vertical" android:padding="8dp" android:layout_marginBottom="4dp" android:layoutDirection="rtl" android:visibility="gone">
-        <ImageView android:id="@+id/iv_check_1" android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_check_empty" android:contentDescription="وضعیت" />
-        <TextView android:id="@+id/tv_task_1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="" android:textSize="13sp" android:textStyle="bold" android:textColor="#F8FAFC" android:maxLines="2" android:ellipsize="end" android:paddingStart="8dp" android:paddingEnd="4dp" />
-        <TextView android:id="@+id/tv_priority_1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="10sp" android:textColor="#F5C542" android:paddingStart="4dp" />
-    </LinearLayout>
-
-    <LinearLayout android:id="@+id/row_task_2" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:background="@drawable/bg_task_row" android:gravity="center_vertical" android:padding="8dp" android:layout_marginBottom="4dp" android:layoutDirection="rtl" android:visibility="gone">
-        <ImageView android:id="@+id/iv_check_2" android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_check_empty" android:contentDescription="وضعیت" />
-        <TextView android:id="@+id/tv_task_2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="" android:textSize="13sp" android:textStyle="bold" android:textColor="#F8FAFC" android:maxLines="2" android:ellipsize="end" android:paddingStart="8dp" android:paddingEnd="4dp" />
-        <TextView android:id="@+id/tv_priority_2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="10sp" android:textColor="#F5C542" android:paddingStart="4dp" />
-    </LinearLayout>
-
-    <LinearLayout android:id="@+id/row_task_3" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:background="@drawable/bg_task_row" android:gravity="center_vertical" android:padding="8dp" android:layout_marginBottom="4dp" android:layoutDirection="rtl" android:visibility="gone">
-        <ImageView android:id="@+id/iv_check_3" android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_check_empty" android:contentDescription="وضعیت" />
-        <TextView android:id="@+id/tv_task_3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="" android:textSize="13sp" android:textStyle="bold" android:textColor="#F8FAFC" android:maxLines="2" android:ellipsize="end" android:paddingStart="8dp" android:paddingEnd="4dp" />
-        <TextView android:id="@+id/tv_priority_3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="10sp" android:textColor="#F5C542" android:paddingStart="4dp" />
-    </LinearLayout>
-
-    <LinearLayout android:id="@+id/row_task_4" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:background="@drawable/bg_task_row" android:gravity="center_vertical" android:padding="8dp" android:layout_marginBottom="4dp" android:layoutDirection="rtl" android:visibility="gone">
-        <ImageView android:id="@+id/iv_check_4" android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_check_empty" android:contentDescription="وضعیت" />
-        <TextView android:id="@+id/tv_task_4" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="" android:textSize="13sp" android:textStyle="bold" android:textColor="#F8FAFC" android:maxLines="2" android:ellipsize="end" android:paddingStart="8dp" android:paddingEnd="4dp" />
-        <TextView android:id="@+id/tv_priority_4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="10sp" android:textColor="#F5C542" android:paddingStart="4dp" />
-    </LinearLayout>
-
-    <LinearLayout android:id="@+id/row_task_5" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:background="@drawable/bg_task_row" android:gravity="center_vertical" android:padding="8dp" android:layout_marginBottom="4dp" android:layoutDirection="rtl" android:visibility="gone">
-        <ImageView android:id="@+id/iv_check_5" android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_check_empty" android:contentDescription="وضعیت" />
-        <TextView android:id="@+id/tv_task_5" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="" android:textSize="13sp" android:textStyle="bold" android:textColor="#F8FAFC" android:maxLines="2" android:ellipsize="end" android:paddingStart="8dp" android:paddingEnd="4dp" />
-        <TextView android:id="@+id/tv_priority_5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="10sp" android:textColor="#F5C542" android:paddingStart="4dp" />
-    </LinearLayout>
-
-    <LinearLayout android:id="@+id/row_task_6" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:background="@drawable/bg_task_row" android:gravity="center_vertical" android:padding="8dp" android:layout_marginBottom="4dp" android:layoutDirection="rtl" android:visibility="gone">
-        <ImageView android:id="@+id/iv_check_6" android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_check_empty" android:contentDescription="وضعیت" />
-        <TextView android:id="@+id/tv_task_6" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="" android:textSize="13sp" android:textStyle="bold" android:textColor="#F8FAFC" android:maxLines="2" android:ellipsize="end" android:paddingStart="8dp" android:paddingEnd="4dp" />
-        <TextView android:id="@+id/tv_priority_6" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="10sp" android:textColor="#F5C542" android:paddingStart="4dp" />
-    </LinearLayout>
+    <ListView
+        android:id="@+id/list_tasks"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="4dp"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false" />
 
     <TextView
         android:id="@+id/tv_empty"
@@ -217,6 +212,7 @@
         android:text="تسکی وجود ندارد"
         android:textSize="13sp"
         android:textColor="#64748B"
+        android:fontFamily="@font/vazirmatn"
         android:gravity="center"
         android:padding="16dp"
         android:visibility="gone" />
