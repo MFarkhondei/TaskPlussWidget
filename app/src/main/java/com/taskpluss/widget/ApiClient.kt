@@ -140,11 +140,25 @@ object ApiClient {
     fun fetchAll(baseUrl: String, token: String, selectedGroup: String): Result {
         val url = normalizeUrl(baseUrl)
         return try {
+            // ساخت payload به صورت رشته JSON برای ارسال در پارامتر data
             val groupsPayload = JSONObject().apply {
                 put("fn", "getGroupsForUser")
                 put("args", JSONArray().put(token))
             }
-            val groupsResp = postJson(url, groupsPayload.toString())
+            val tasksPayload = JSONObject().apply {
+                put("fn", "getTasksPage")
+                put("args", JSONArray().put(token).put(0).put(80))
+            }
+            
+            // درخواست گروه‌ها با doGet
+            val groupsUrl = buildString {
+                append(url)
+                append(if (url.contains("?")) "&" else "?")
+                append("action=rpc")
+                append("&data=")
+                append(URLEncoder.encode(groupsPayload.toString(), "UTF-8"))
+            }
+            val groupsResp = getText(groupsUrl)
             val groupsObj = parseJsonSafe(groupsResp)
             if (!groupsObj.optBoolean("success", true) && groupsObj.has("message")) {
                 return Result(false, groupsObj.optString("message", "خطا در دریافت گروه‌ها"))
@@ -168,11 +182,15 @@ object ApiClient {
                 groupsMap["none"] = GroupItem("none", "بدون گروه")
             }
 
-            val tasksPayload = JSONObject().apply {
-                put("fn", "getTasksPage")
-                put("args", JSONArray().put(token).put(0).put(80))
+            // درخواست تسک‌ها با doGet
+            val tasksUrl = buildString {
+                append(url)
+                append(if (url.contains("?")) "&" else "?")
+                append("action=rpc")
+                append("&data=")
+                append(URLEncoder.encode(tasksPayload.toString(), "UTF-8"))
             }
-            val tasksResp = postJson(url, tasksPayload.toString())
+            val tasksResp = getText(tasksUrl)
             val tasksObj = parseJsonSafe(tasksResp)
             if (!tasksObj.optBoolean("success", true) && tasksObj.has("message")) {
                 return Result(false, tasksObj.optString("message", "خطا در دریافت تسک‌ها"))
@@ -229,7 +247,15 @@ object ApiClient {
                 put("fn", "upsertTask")
                 put("args", JSONArray().put(token).put(task.toString()))
             }
-            val resp = postJson(url, payload.toString())
+            // ارسال با doGet به جای POST
+            val reqUrl = buildString {
+                append(url)
+                append(if (url.contains("?")) "&" else "?")
+                append("action=rpc")
+                append("&data=")
+                append(URLEncoder.encode(payload.toString(), "UTF-8"))
+            }
+            val resp = getText(reqUrl)
             val obj = parseJsonSafe(resp)
             if (obj.optBoolean("success", false)) {
                 Result(true, "تسک اضافه شد")
@@ -263,7 +289,15 @@ object ApiClient {
                 put("fn", "upsertTask")
                 put("args", JSONArray().put(token).put(taskJson.toString()))
             }
-            val resp = postJson(url, payload.toString())
+            // ارسال با doGet به جای POST
+            val reqUrl = buildString {
+                append(url)
+                append(if (url.contains("?")) "&" else "?")
+                append("action=rpc")
+                append("&data=")
+                append(URLEncoder.encode(payload.toString(), "UTF-8"))
+            }
+            val resp = getText(reqUrl)
             val obj = parseJsonSafe(resp)
             if (obj.optBoolean("success", false)) {
                 Result(true, "وضعیت به‌روز شد")
