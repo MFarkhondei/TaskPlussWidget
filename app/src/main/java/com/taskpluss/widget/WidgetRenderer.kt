@@ -82,7 +82,6 @@ object WidgetRenderer {
             if (cache.offline) 0xFFF87171.toInt() else 0xFF64748B.toInt()
         )
 
-        // رفرش → SilentRefreshActivity (مسیر شبکه مثل تنظیمات)
         val refreshIntent = Intent(context, SilentRefreshActivity::class.java)
         val refreshPi = PendingIntent.getActivity(
             context, 0, refreshIntent,
@@ -90,14 +89,14 @@ object WidgetRenderer {
         )
         rv.setOnClickPendingIntent(R.id.iv_refresh, refreshPi)
 
-        val addIntent = Intent(context, AddTaskActivity::class.java)
+        val addIntent = Intent(context, AddTaskActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        }
         val addPi = PendingIntent.getActivity(
             context, 1, addIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         rv.setOnClickPendingIntent(R.id.btn_add_task, addPi)
-
-        // بدنه ویجت عمداً کلیک ندارد — تنظیمات فقط از آیکون اپ
 
         val groupKeys = mutableListOf("all")
         val groupNames = mutableListOf("همه")
@@ -149,15 +148,8 @@ object WidgetRenderer {
                     val t = show[i]
                     rv.setViewVisibility(TASK_ROW_IDS[i], View.VISIBLE)
                     rv.setTextViewText(TASK_TV_IDS[i], t.title)
-                    val isDone = t.status == "done"
-                    rv.setImageViewResource(
-                        CHECK_IDS[i],
-                        if (isDone) R.drawable.ic_check_done else R.drawable.ic_check_empty
-                    )
-                    rv.setTextColor(
-                        TASK_TV_IDS[i],
-                        if (isDone) 0xFF64748B.toInt() else 0xFFF8FAFC.toInt()
-                    )
+                    rv.setImageViewResource(CHECK_IDS[i], R.drawable.ic_check_empty)
+                    rv.setTextColor(TASK_TV_IDS[i], 0xFFF8FAFC.toInt())
                     val pText = when {
                         t.priority >= 3 -> "!!!"
                         t.priority == 2 -> "!!"
@@ -194,10 +186,12 @@ object WidgetRenderer {
 
     private fun filterAndSort(cache: WidgetCache): List<TaskItem> {
         val key = cache.selectedGroupKey
+        // تسک‌های انجام‌شده در ویجت نمایش داده نمی‌شوند
+        val active = cache.tasks.filter { it.status != "done" }
         val list = if (key == "all") {
-            cache.tasks
+            active
         } else {
-            cache.tasks.filter { it.group == key }
+            active.filter { it.group == key }
         }
         return if (key == "all") {
             list.sortedWith(compareByDescending<TaskItem> { it.created }.thenByDescending { it.id })
