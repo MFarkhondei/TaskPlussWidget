@@ -71,7 +71,6 @@ object WidgetRenderer {
     private fun buildRemoteViews(context: Context, cache: WidgetCache): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.widget_layout)
 
-        // Header time / offline
         val statusText = when {
             cache.offline -> "آفلاین"
             cache.updatedAt.isNotBlank() -> cache.updatedAt
@@ -83,7 +82,7 @@ object WidgetRenderer {
             if (cache.offline) 0xFFF87171.toInt() else 0xFF64748B.toInt()
         )
 
-        // Refresh click → SilentRefreshActivity
+        // رفرش → SilentRefreshActivity (مسیر شبکه مثل تنظیمات)
         val refreshIntent = Intent(context, SilentRefreshActivity::class.java)
         val refreshPi = PendingIntent.getActivity(
             context, 0, refreshIntent,
@@ -91,7 +90,6 @@ object WidgetRenderer {
         )
         rv.setOnClickPendingIntent(R.id.iv_refresh, refreshPi)
 
-        // Add task → AddTaskActivity
         val addIntent = Intent(context, AddTaskActivity::class.java)
         val addPi = PendingIntent.getActivity(
             context, 1, addIntent,
@@ -99,15 +97,8 @@ object WidgetRenderer {
         )
         rv.setOnClickPendingIntent(R.id.btn_add_task, addPi)
 
-        // Body click → Config
-        val configIntent = Intent(context, ConfigActivity::class.java)
-        val configPi = PendingIntent.getActivity(
-            context, 2, configIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        rv.setOnClickPendingIntent(R.id.widget_root, configPi)
+        // بدنه ویجت عمداً کلیک ندارد — تنظیمات فقط از آیکون اپ
 
-        // Groups chips: [all] + up to 4 custom
         val groupKeys = mutableListOf("all")
         val groupNames = mutableListOf("همه")
         cache.groups.entries
@@ -132,7 +123,6 @@ object WidgetRenderer {
                     CHIP_IDS[i],
                     if (selected) 0xFFF5C542.toInt() else 0xFF94A3B8.toInt()
                 )
-                // Click to select group
                 val gIntent = Intent(context, GroupSelectActivity::class.java).apply {
                     putExtra("group_key", groupKeys[i])
                 }
@@ -146,7 +136,6 @@ object WidgetRenderer {
             }
         }
 
-        // Filter + sort tasks
         val filtered = filterAndSort(cache)
         val show = filtered.take(6)
 
@@ -169,7 +158,6 @@ object WidgetRenderer {
                         TASK_TV_IDS[i],
                         if (isDone) 0xFF64748B.toInt() else 0xFFF8FAFC.toInt()
                     )
-                    // Priority indicator
                     val pText = when {
                         t.priority >= 3 -> "!!!"
                         t.priority == 2 -> "!!"
@@ -186,7 +174,6 @@ object WidgetRenderer {
                         }
                     )
 
-                    // Toggle done click
                     val toggleIntent = Intent(context, ToggleTaskActivity::class.java).apply {
                         putExtra("task_id", t.id)
                     }
@@ -213,10 +200,8 @@ object WidgetRenderer {
             cache.tasks.filter { it.group == key }
         }
         return if (key == "all") {
-            // newest created first
             list.sortedWith(compareByDescending<TaskItem> { it.created }.thenByDescending { it.id })
         } else {
-            // priority high to low, then created
             list.sortedWith(
                 compareByDescending<TaskItem> { it.priority }
                     .thenByDescending { it.created }
