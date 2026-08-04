@@ -11,7 +11,7 @@ class TaskPlussWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-        val cache = Prefs.run { context.loadCache() }
+        val cache = Prefs.loadCache(context)
         WidgetRenderer.applyData(context, cache, appWidgetIds)
         WidgetUpdateService.start(context)
     }

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/item_task_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@drawable/bg_task_row"
+    android:gravity="center_vertical"
+    android:padding="8dp"
+    android:layoutDirection="rtl"
+    android:layout_marginBottom="4dp">
+
+    <ImageView
+        android:id="@+id/iv_check"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:src="@drawable/ic_check_empty"
+        android:contentDescription="وضعیت" />
+
+    <TextView
+        android:id="@+id/tv_task_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text=""
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:textColor="#F8FAFC"
+        android:fontFamily="@font/vazirmatn"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:paddingStart="8dp"
+        android:paddingEnd="4dp" />
+
+    <TextView
+        android:id="@+id/tv_task_priority"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="10sp"
+        android:textColor="#F5C542"
+        android:fontFamily="@font/vazirmatn"
+        android:paddingStart="4dp" />
+</LinearLayout>

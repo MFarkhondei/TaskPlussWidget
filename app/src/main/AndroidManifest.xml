@@ -53,6 +53,13 @@
             android:taskAffinity="" />
 
         <activity
+            android:name=".GroupPageActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TaskPlussWidget.Transparent"
+            android:excludeFromRecents="true"
+            android:taskAffinity="" />
+
+        <activity
             android:name=".ToggleTaskActivity"
             android:exported="false"
             android:theme="@style/Theme.TaskPlussWidget.Transparent"
@@ -62,21 +69,13 @@
         <receiver
             android:name=".TaskPlussWidgetProvider"
             android:exported="true"
-            android:label="@string/widget_name">
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_info" />
-        </receiver>
-
-        <receiver
-            android:name=".WidgetUpdateReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.taskpluss.widget.ACTION_AUTO_UPDATE" />
-            </intent-filter>
         </receiver>
 
         <receiver
@@ -87,10 +86,19 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".WidgetUpdateReceiver"
+            android:exported="false" />
+
         <service
             android:name=".WidgetUpdateService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+
+        <service
+            android:name=".TaskListService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
 
     </application>
 </manifest>
