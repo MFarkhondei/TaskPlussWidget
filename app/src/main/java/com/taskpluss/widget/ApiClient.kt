@@ -205,13 +205,14 @@ object ApiClient {
 
     fun addTask(baseUrl: String, token: String, title: String): Result {
         return try {
+            val created = JalaliUtils.nowTehranJalaliString()
             val task = JSONObject().apply {
                 put("id", java.util.UUID.randomUUID().toString())
                 put("title", title)
                 put("status", "todo")
                 put("priority", 0)
                 put("date", "")
-                put("created", "")
+                put("created", created)
                 put("group", "none")
                 put("tags", JSONArray())
                 put("notes", "")
@@ -267,10 +268,5 @@ object ApiClient {
         }
     }
 
-    private fun nowTime(): String {
-        val cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Asia/Tehran"))
-        val h = cal.get(java.util.Calendar.HOUR_OF_DAY).toString().padStart(2, '0')
-        val m = cal.get(java.util.Calendar.MINUTE).toString().padStart(2, '0')
-        return "$h:$m"
-    }
+    private fun nowTime(): String = JalaliUtils.nowTehranJalaliString()
 }
