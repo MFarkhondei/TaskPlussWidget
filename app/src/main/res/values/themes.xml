@@ -9,6 +9,8 @@
         <item name="android:windowBackground">#0A0F1A</item>
         <item name="android:textColorPrimary">#F8FAFC</item>
         <item name="android:textColorSecondary">#94A3B8</item>
+        <item name="android:fontFamily">@font/vazirmatn</item>
+        <item name="fontFamily">@font/vazirmatn</item>
     </style>
 
     <style name="Theme.TaskPlussWidget.Transparent" parent="Theme.TaskPlussWidget">

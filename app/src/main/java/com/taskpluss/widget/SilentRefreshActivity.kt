@@ -6,9 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-/**
- * Activity شفاف بدون dim — همان مسیر شبکه ConfigActivity
- */
+/** رفرش دستی — همان IO + ApiClient مسیر تنظیمات */
 class SilentRefreshActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,8 +17,12 @@ class SilentRefreshActivity : Activity() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 WidgetRenderer.fetchAndApply(appCtx)
+                AlarmHelper.rescheduleAfterSuccess(appCtx)
             } finally {
-                runOnUiThread { finish() }
+                runOnUiThread {
+                    finish()
+                    moveTaskToBack(true)
+                }
             }
         }
     }

@@ -21,7 +21,7 @@ class AddTaskActivity : AppCompatActivity() {
         val btnClose = findViewById<Button>(R.id.btn_close)
         val tvStatus = findViewById<TextView>(R.id.tv_add_status)
 
-        btnClose.setOnClickListener { finish() }
+        btnClose.setOnClickListener { finishAndGoHome() }
 
         btnSave.setOnClickListener {
             val title = etTitle.text?.toString()?.trim().orEmpty()
@@ -47,7 +47,7 @@ class AddTaskActivity : AppCompatActivity() {
                 if (result.success) {
                     Toast.makeText(this@AddTaskActivity, "تسک اضافه شد", Toast.LENGTH_SHORT).show()
                     val appCtx = applicationContext
-                    finish()
+                    finishAndGoHome()
                     CoroutineScope(Dispatchers.IO).launch {
                         WidgetRenderer.fetchAndApply(appCtx)
                     }
@@ -58,5 +58,15 @@ class AddTaskActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun finishAndGoHome() {
+        finish()
+        moveTaskToBack(true)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        finishAndGoHome()
     }
 }
