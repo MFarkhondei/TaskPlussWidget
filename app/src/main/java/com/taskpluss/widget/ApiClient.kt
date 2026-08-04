@@ -84,17 +84,15 @@ object ApiClient {
         }
     }
 
-    /** Login: مستقیم با RPC POST */
+    /** Login: ارسال با GET و پارامترهای query */
     fun login(baseUrl: String, username: String, password: String): Result {
         val url = normalizeUrl(baseUrl)
         if (url.isBlank()) return Result(false, "آدرس Web App خالی است")
 
         return try {
-            val payload = JSONObject().apply {
-                put("fn", "loginUser")
-                put("args", JSONArray().put(username).put(password))
-            }
-            val resp = postJson(url, payload.toString())
+            val args = JSONArray().put(username).put(password)
+            val fullUrl = "$url?fn=${URLEncoder.encode("loginUser", "UTF-8")}&args=${URLEncoder.encode(args.toString(), "UTF-8")}"
+            val resp = getText(fullUrl)
             val obj = parseJsonSafe(resp)
             val root = unwrap(obj)
             if (root.optBoolean("success", false) || root.has("token")) {
@@ -116,41 +114,55 @@ object ApiClient {
     fun fetchAll(baseUrl: String, token: String, selectedGroup: String): Result {
         val url = normalizeUrl(baseUrl)
         return try {
-            // درخواست گروه‌ها با RPC POST
-            val groupsPayload = JSONObject().apply {
-                put("fn", "getGroupsForUser")
-                put("args", JSONArray().put(token))
-            }
-            val groupsResp = postJson(url, groupsPayload.toString())
+            // درخواست گروه‌ها با GET
+            val groupsArgs = JSONArray().put(token)
+            val groupsUrl = "$url?fn=${URLEncoder.encode("getGroupsForUser", "UTF-8")}&args=${URLEncoder.encode(groupsArgs.toString(), "UTF-8")}"
+            val groupsResp = getText(groupsUrl)
             val groupsObj = parseJsonSafe(groupsResp)
             if (!groupsObj.optBoolean("success", true) && groupsObj.has("message")) {
                 return Result(false, groupsObj.optString("message", "خطا در دریافت گروه‌ها"))
             }
 
             val groupsMap = mutableMapOf<String, GroupItem>()
-            val gObj = groupsObj.optJSONObject("groups")
-            if (gObj != null) {
-                val keys = gObj.keys()
-                while (keys.hasNext()) {
-                    val k = keys.next()
-                    val g = gObj.getJSONObject(k)
-                    groupsMap[k] = GroupItem(
-                        key = k,
-                        name = g.optString("name", k),
+            // پشتیبانی از فرمت‌های مختلف پاسخ
+            val gArray = groupsObj.optJSONArray("groups")
+            if (gArray != null) {
+                for (i in 0 until gArray.length()) {
+                    val g = gArray.getJSONObject(i)
+                    val key = g.optString("groupId", g.optString("id", "group_$i"))
+                    groupsMap[key] = GroupItem(
+                        key = key,
+                        name = g.optString("groupName", g.optString("name", key)),
                         color = g.optString("color", "#5B6B7A")
                     )
+                }
+            } else {
+                val gObj = groupsObj.optJSONObject("groups")
+                if (gObj != null) {
+                    val keys = gObj.keys()
+                    while (keys.hasNext()) {
+                        val k = keys.next()
+                        val g = gObj.getJSONObject(k)
+                        groupsMap[k] = GroupItem(
+                            key = k,
+                            name = g.optString("name", k),
+                            color = g.optString("color", "#5B6B7A")
+                        )
+                    }
                 }
             }
             if (!groupsMap.containsKey("none")) {
                 groupsMap["none"] = GroupItem("none", "بدون گروه")
             }
-
-            // درخواست تسک‌ها با RPC POST
-            val tasksPayload = JSONObject().apply {
-                put("fn", "getTasksPage")
-                put("args", JSONArray().put(token).put(0).put(80))
+            // اضافه کردن گروه «همه» اگر وجود ندارد
+            if (!groupsMap.containsKey("all")) {
+                groupsMap["all"] = GroupItem("all", "همه")
             }
-            val tasksResp = postJson(url, tasksPayload.toString())
+
+            // درخواست تسک‌ها با GET
+            val tasksArgs = JSONArray().put(token).put(selectedGroup).put(0)
+            val tasksUrl = "$url?fn=${URLEncoder.encode("getTasksPage", "UTF-8")}&args=${URLEncoder.encode(tasksArgs.toString(), "UTF-8")}"
+            val tasksResp = getText(tasksUrl)
             val tasksObj = parseJsonSafe(tasksResp)
             if (!tasksObj.optBoolean("success", true) && tasksObj.has("message")) {
                 return Result(false, tasksObj.optString("message", "خطا در دریافت تسک‌ها"))
@@ -161,14 +173,14 @@ object ApiClient {
                 val o = arr.getJSONObject(i)
                 list.add(
                     TaskItem(
-                        id = o.optString("id"),
+                        id = o.optString("taskId", o.optString("id")),
                         title = o.optString("title"),
-                        status = o.optString("status", "todo"),
+                        status = if (o.optBoolean("isDone", false)) "done" else "todo",
                         priority = o.optInt("priority", 0),
-                        date = o.optString("date"),
-                        created = o.optString("created"),
-                        group = o.optString("group", "none"),
-                        notes = o.optString("notes")
+                        date = "",
+                        created = o.optString("createdAt", o.optString("created")),
+                        group = o.optString("groupId", o.optString("group", "none")),
+                        notes = o.optString("description", o.optString("notes"))
                     )
                 )
             }
@@ -189,25 +201,24 @@ object ApiClient {
     fun addTask(baseUrl: String, token: String, title: String): Result {
         val url = normalizeUrl(baseUrl)
         return try {
-            val task = JSONObject().apply {
-                put("id", java.util.UUID.randomUUID().toString())
-                put("title", title)
-                put("status", "todo")
-                put("priority", 0)
-                put("date", "")
-                put("created", nowTime())
-                put("group", "none")
-                put("tags", JSONArray())
-                put("notes", "")
-                put("mainTask", JSONObject.NULL)
-                put("subtasks", JSONArray())
-            }
-            // ارسال با RPC POST
-            val payload = JSONObject().apply {
-                put("fn", "upsertTask")
-                put("args", JSONArray().put(token).put(task))
-            }
-            val resp = postJson(url, payload.toString())
+            // ساخت آبجکت تسک کامل مطابق با فرمت code.gs
+            val taskObj = JSONObject()
+                .put("id", java.util.UUID.randomUUID().toString())
+                .put("title", title)
+                .put("status", "todo")
+                .put("priority", 0)
+                .put("date", "")
+                .put("created", "")
+                .put("group", "none")
+                .put("tags", JSONArray())
+                .put("notes", "")
+                .put("mainTask", JSONObject.NULL)
+                .put("subtasks", JSONArray())
+            
+            val args = JSONArray().put(taskObj)
+            
+            val fullUrl = "$url?fn=${URLEncoder.encode("upsertTask", "UTF-8")}&args=${URLEncoder.encode(args.toString(), "UTF-8")}"
+            val resp = getText(fullUrl)
             val obj = parseJsonSafe(resp)
             if (obj.optBoolean("success", false)) {
                 Result(true, "تسک اضافه شد")
@@ -222,27 +233,30 @@ object ApiClient {
     fun toggleTaskDone(baseUrl: String, token: String, task: TaskItem): Result {
         val url = normalizeUrl(baseUrl)
         return try {
-            val newStatus = if (task.status == "done") "todo" else "done"
-            val taskJson = JSONObject().apply {
-                put("id", task.id)
-                put("title", task.title)
-                put("status", newStatus)
-                put("priority", task.priority)
-                put("date", task.date)
-                put("created", task.created)
-                put("group", task.group)
-                put("tags", JSONArray())
-                put("notes", task.notes)
-                put("mainTask", JSONObject.NULL)
-                put("subtasks", JSONArray())
-                if (newStatus == "done") put("doneAt", nowTime())
-            }
-            // ارسال با RPC POST
-            val payload = JSONObject().apply {
-                put("fn", "upsertTask")
-                put("args", JSONArray().put(token).put(taskJson))
-            }
-            val resp = postJson(url, payload.toString())
+            val isDone = task.status != "done"  // اگر انجام نشده باشد، انجام شده قرار بده
+            
+            // ساخت آبجکت تسک کامل با وضعیت جدید
+            val taskObj = JSONObject()
+                .put("id", task.id)
+                .put("title", task.title)
+                .put("status", if (isDone) "done" else "todo")
+                .put("priority", task.priority)
+                .put("date", task.date)
+                .put("created", task.created)
+                .put("group", task.group)
+                .put("tags", JSONArray().apply {
+                    task.tags?.forEach { put(it) }
+                })
+                .put("notes", task.notes)
+                .put("mainTask", JSONObject.NULL)
+                .put("subtasks", JSONArray().apply {
+                    task.subtasks?.forEach { put(it) }
+                })
+            
+            val args = JSONArray().put(taskObj)
+            
+            val fullUrl = "$url?fn=${URLEncoder.encode("upsertTask", "UTF-8")}&args=${URLEncoder.encode(args.toString(), "UTF-8")}"
+            val resp = getText(fullUrl)
             val obj = parseJsonSafe(resp)
             if (obj.optBoolean("success", false)) {
                 Result(true, "وضعیت به‌روز شد")
@@ -281,33 +295,9 @@ object ApiClient {
     }
 
     private fun postJson(baseUrl: String, body: String): String {
-        var url = normalizeUrl(baseUrl)
-        var redirects = 0
-        while (redirects < 8) {
-            val conn = (URL(url).openConnection() as HttpURLConnection).apply {
-                requestMethod = "POST"
-                connectTimeout = TIMEOUT
-                readTimeout = TIMEOUT
-                doOutput = true
-                doInput = true
-                instanceFollowRedirects = false
-                setRequestProperty("Content-Type", "application/json; charset=utf-8")
-                setRequestProperty("Accept", "application/json, text/plain, */*")
-                setRequestProperty("User-Agent", "TaskPlussWidget/1.0")
-            }
-            OutputStreamWriter(conn.outputStream, Charsets.UTF_8).use { it.write(body) }
-            val code = conn.responseCode
-            if (code in 300..399) {
-                val loc = conn.getHeaderField("Location") ?: break
-                url = if (loc.startsWith("http")) loc else URL(URL(url), loc).toString()
-                redirects++
-                conn.disconnect()
-                continue
-            }
-            val stream = if (code in 200..299) conn.inputStream else (conn.errorStream ?: conn.inputStream)
-            return BufferedReader(InputStreamReader(stream, Charsets.UTF_8)).use { it.readText() }
-        }
-        throw Exception("Redirect زیاد یا خطای شبکه")
+        // این تابع برای سازگاری با کدهای قدیمی نگه داشته شده است
+        // اما اکنون تمام درخواست‌ها از طریق getText با متد GET ارسال می‌شوند
+        throw UnsupportedOperationException("استفاده از POST پشتیبانی نمی‌شود. از GET استفاده کنید.")
     }
 
     private fun nowTime(): String {

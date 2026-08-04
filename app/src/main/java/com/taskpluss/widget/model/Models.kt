@@ -8,7 +8,9 @@ data class TaskItem(
     val date: String,
     val created: String,
     val group: String,
-    val notes: String = ""
+    val notes: String = "",
+    val tags: List<String>? = null,
+    val subtasks: List<String>? = null
 )
 
 data class GroupItem(
