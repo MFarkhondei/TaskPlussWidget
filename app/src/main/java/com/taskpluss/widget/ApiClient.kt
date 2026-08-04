@@ -140,15 +140,16 @@ object ApiClient {
     fun fetchAll(baseUrl: String, token: String, selectedGroup: String): Result {
         val url = normalizeUrl(baseUrl)
         return try {
-            // درخواست گروه‌ها با doGet - ارسال fn و args به صورت پارامترهای جداگانه
+            // درخواست گروه‌ها با doGet - ارسال action به همراه data
+            val groupsDataObj = JSONObject().apply {
+                put("token", token)
+            }
             val groupsUrl = buildString {
                 append(url)
                 append(if (url.contains("?")) "&" else "?")
-                append("action=rpc")
-                append("&fn=")
-                append(URLEncoder.encode("getGroupsForUser", "UTF-8"))
-                append("&args=")
-                append(URLEncoder.encode(JSONArray().put(token).toString(), "UTF-8"))
+                append("action=getGroupsForUser")
+                append("&data=")
+                append(URLEncoder.encode(groupsDataObj.toString(), "UTF-8"))
             }
             val groupsResp = getText(groupsUrl)
             val groupsObj = parseJsonSafe(groupsResp)
@@ -174,15 +175,14 @@ object ApiClient {
                 groupsMap["none"] = GroupItem("none", "بدون گروه")
             }
 
-            // درخواست تسک‌ها با doGet - ارسال fn و args به صورت پارامترهای جداگانه
+            // درخواست تسک‌ها با doGet - ارسال action به همراه data
+            val tasksDataObj = JSONArray().put(token).put(0).put(80)
             val tasksUrl = buildString {
                 append(url)
                 append(if (url.contains("?")) "&" else "?")
-                append("action=rpc")
-                append("&fn=")
-                append(URLEncoder.encode("getTasksPage", "UTF-8"))
-                append("&args=")
-                append(URLEncoder.encode(JSONArray().put(token).put(0).put(80).toString(), "UTF-8"))
+                append("action=getTasksPage")
+                append("&data=")
+                append(URLEncoder.encode(tasksDataObj.toString(), "UTF-8"))
             }
             val tasksResp = getText(tasksUrl)
             val tasksObj = parseJsonSafe(tasksResp)
@@ -237,15 +237,14 @@ object ApiClient {
                 put("mainTask", JSONObject.NULL)
                 put("subtasks", JSONArray())
             }
-            // ارسال با doGet به جای POST - استفاده از پارامترهای fn و args
+            // ارسال با doGet - استفاده از action مستقیم و data
+            val argsData = JSONArray().put(token).put(task)
             val reqUrl = buildString {
                 append(url)
                 append(if (url.contains("?")) "&" else "?")
-                append("action=rpc")
-                append("&fn=")
-                append(URLEncoder.encode("upsertTask", "UTF-8"))
-                append("&args=")
-                append(URLEncoder.encode(JSONArray().put(token).put(task).toString(), "UTF-8"))
+                append("action=upsertTask")
+                append("&data=")
+                append(URLEncoder.encode(argsData.toString(), "UTF-8"))
             }
             val resp = getText(reqUrl)
             val obj = parseJsonSafe(resp)
@@ -277,15 +276,14 @@ object ApiClient {
                 put("subtasks", JSONArray())
                 if (newStatus == "done") put("doneAt", nowTime())
             }
-            // ارسال با doGet به جای POST - استفاده از پارامترهای fn و args
+            // ارسال با doGet - استفاده از action مستقیم و data
+            val argsData = JSONArray().put(token).put(taskJson)
             val reqUrl = buildString {
                 append(url)
                 append(if (url.contains("?")) "&" else "?")
-                append("action=rpc")
-                append("&fn=")
-                append(URLEncoder.encode("upsertTask", "UTF-8"))
-                append("&args=")
-                append(URLEncoder.encode(JSONArray().put(token).put(taskJson).toString(), "UTF-8"))
+                append("action=upsertTask")
+                append("&data=")
+                append(URLEncoder.encode(argsData.toString(), "UTF-8"))
             }
             val resp = getText(reqUrl)
             val obj = parseJsonSafe(resp)
