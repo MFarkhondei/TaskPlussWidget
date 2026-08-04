@@ -19,7 +19,6 @@ object ApiClient {
 
     private const val TIMEOUT = 20000
 
-    /** آدرس پیش‌فرض از config.js پروژه TaskPluss */
     const val DEFAULT_WEBAPP_URL =
         "https://script.google.com/macros/s/AKfycbx0W1jYG8-N4le384oJFYIwXD1OAgYb5lc6E6vOe9CDO3ov7fmkNRXJNdOvw_GSzGalkw/exec"
 
@@ -66,7 +65,7 @@ object ApiClient {
         if (candidate.startsWith("\"") && candidate.endsWith("\"")) {
             try {
                 candidate = JSONArray("[$candidate]").getString(0)
-            } catch (_: Exception) { /* keep */ }
+            } catch (_: Exception) { }
         }
         return JSONObject(candidate)
     }
@@ -91,11 +90,7 @@ object ApiClient {
                 conn.disconnect()
                 continue
             }
-            val stream = if (code in 200..299) {
-                conn.inputStream
-            } else {
-                conn.errorStream ?: conn.inputStream
-            }
+            val stream = if (code in 200..299) conn.inputStream else (conn.errorStream ?: conn.inputStream)
             return BufferedReader(InputStreamReader(stream, Charsets.UTF_8)).use { it.readText() }
         }
         throw Exception("Redirect زیاد یا خطای شبکه")
@@ -104,7 +99,9 @@ object ApiClient {
     private fun buildUrl(base: String, params: Map<String, String>): String {
         val b = normalizeUrl(base)
         val q = params.entries.joinToString("&") { (k, v) ->
-            "${URLEncoder.encode(k, \"UTF-8\")}=${URLEncoder.encode(v, \"UTF-8\")}"
+            val ek = URLEncoder.encode(k, "UTF-8")
+            val ev = URLEncoder.encode(v, "UTF-8")
+            "$ek=$ev"
         }
         return "$b?$q"
     }
