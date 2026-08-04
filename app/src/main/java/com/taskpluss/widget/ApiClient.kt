@@ -205,10 +205,11 @@ object ApiClient {
 
     fun addTask(baseUrl: String, token: String, title: String): Result {
         return try {
+            // دقیقاً مطابق quickAdd فرانت‌اند تسک‌پلاس
             val created = JalaliUtils.nowTehranJalaliString()
             val task = JSONObject().apply {
-                put("id", java.util.UUID.randomUUID().toString())
-                put("title", title)
+                put("id", JalaliUtils.newTaskId())
+                put("title", title.trim())
                 put("status", "todo")
                 put("priority", 0)
                 put("date", "")
@@ -218,6 +219,8 @@ object ApiClient {
                 put("notes", "")
                 put("mainTask", JSONObject.NULL)
                 put("subtasks", JSONArray())
+                put("doingAt", "")
+                put("doneAt", "")
             }
             val url = buildUrl(baseUrl, mapOf(
                 "action" to "addTask",
@@ -226,7 +229,7 @@ object ApiClient {
             ))
             val obj = parseJson(getText(url))
             if (obj.optBoolean("success", false)) {
-                Result(true, "تسک اضافه شد")
+                Result(true, "تسک اضافه شد ($created)")
             } else {
                 Result(false, obj.optString("message", "خطا در افزودن"))
             }
@@ -238,19 +241,24 @@ object ApiClient {
     fun toggleTaskDone(baseUrl: String, token: String, task: TaskItem): Result {
         return try {
             val newStatus = if (task.status == "done") "todo" else "done"
+            val stamp = JalaliUtils.nowTehranJalaliString()
             val taskJson = JSONObject().apply {
                 put("id", task.id)
                 put("title", task.title)
                 put("status", newStatus)
                 put("priority", task.priority)
                 put("date", task.date)
-                put("created", task.created)
-                put("group", task.group)
+                put("created", task.created.ifBlank { stamp })
+                put("group", if (task.group.isBlank()) "none" else task.group)
                 put("tags", JSONArray())
                 put("notes", task.notes)
                 put("mainTask", JSONObject.NULL)
                 put("subtasks", JSONArray())
-                if (newStatus == "done") put("doneAt", nowTime())
+                if (newStatus == "done") {
+                    put("doneAt", stamp)
+                } else {
+                    put("doneAt", "")
+                }
             }
             val url = buildUrl(baseUrl, mapOf(
                 "action" to "updateTask",
