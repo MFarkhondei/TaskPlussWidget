@@ -84,50 +84,26 @@ object ApiClient {
         }
     }
 
-    /** Login: اول doGet (action=login)، در صورت شکست RPC POST */
+    /** Login: مستقیم با RPC POST */
     fun login(baseUrl: String, username: String, password: String): Result {
         val url = normalizeUrl(baseUrl)
         if (url.isBlank()) return Result(false, "آدرس Web App خالی است")
 
-        // روش ۱: doGet مطابق switch موجود در Apps Script
-        try {
-            val dataObj = JSONObject().apply {
-                put("username", username)
-                put("password", password)
+        return try {
+            val payload = JSONObject().apply {
+                put("fn", "loginUser")
+                put("args", JSONArray().put(username).put(password))
             }
-            val q = buildString {
-                append(url)
-                append(if (url.contains("?")) "&" else "?")
-                append("action=login")
-                append("&data=")
-                append(URLEncoder.encode(dataObj.toString(), "UTF-8"))
-            }
-            val resp = getText(q)
+            val resp = postJson(url, payload.toString())
             val obj = parseJsonSafe(resp)
-            // loginUser خودش JSON.stringify برمی‌گرداند؛ ContentService ممکن است یک لایه دیگر داشته باشد
             val root = unwrap(obj)
             if (root.optBoolean("success", false) || root.has("token")) {
-                return Result(true, "ورود موفق", token = root.optString("token", ""))
+                Result(true, "ورود موفق", token = root.optString("token", ""))
+            } else {
+                Result(false, root.optString("message", "ورود ناموفق"))
             }
-            return Result(false, root.optString("message", "ورود ناموفق"))
-        } catch (e1: Exception) {
-            // روش ۲: RPC POST
-            return try {
-                val payload = JSONObject().apply {
-                    put("fn", "loginUser")
-                    put("args", JSONArray().put(username).put(password))
-                }
-                val resp = postJson(url, payload.toString())
-                val obj = parseJsonSafe(resp)
-                val root = unwrap(obj)
-                if (root.optBoolean("success", false) || root.has("token")) {
-                    Result(true, "ورود موفق", token = root.optString("token", ""))
-                } else {
-                    Result(false, root.optString("message", "ورود ناموفق"))
-                }
-            } catch (e2: Exception) {
-                Result(false, e2.message ?: e1.message ?: "خطای شبکه")
-            }
+        } catch (e: Exception) {
+            Result(false, e.message ?: "خطای شبکه")
         }
     }
 
@@ -140,18 +116,12 @@ object ApiClient {
     fun fetchAll(baseUrl: String, token: String, selectedGroup: String): Result {
         val url = normalizeUrl(baseUrl)
         return try {
-            // درخواست گروه‌ها با doGet
-            val groupsDataObj = JSONObject().apply {
-                put("token", token)
+            // درخواست گروه‌ها با RPC POST
+            val groupsPayload = JSONObject().apply {
+                put("fn", "getGroupsForUser")
+                put("args", JSONArray().put(token))
             }
-            val groupsUrl = buildString {
-                append(url)
-                append(if (url.contains("?")) "&" else "?")
-                append("action=getGroupsForUser")
-                append("&data=")
-                append(URLEncoder.encode(groupsDataObj.toString(), "UTF-8"))
-            }
-            val groupsResp = getText(groupsUrl)
+            val groupsResp = postJson(url, groupsPayload.toString())
             val groupsObj = parseJsonSafe(groupsResp)
             if (!groupsObj.optBoolean("success", true) && groupsObj.has("message")) {
                 return Result(false, groupsObj.optString("message", "خطا در دریافت گروه‌ها"))
@@ -175,72 +145,36 @@ object ApiClient {
                 groupsMap["none"] = GroupItem("none", "بدون گروه")
             }
 
-            // درخواست تسک‌ها - ابتدا با doGet، اگر نشد با POST RPC
-            val tasks = try {
-                val tasksDataObj = JSONArray().put(token).put(0).put(80)
-                val tasksUrl = buildString {
-                    append(url)
-                    append(if (url.contains("?")) "&" else "?")
-                    append("action=getTasksPage")
-                    append("&data=")
-                    append(URLEncoder.encode(tasksDataObj.toString(), "UTF-8"))
-                }
-                val tasksResp = getText(tasksUrl)
-                val tasksObj = parseJsonSafe(tasksResp)
-                if (!tasksObj.optBoolean("success", true) && tasksObj.has("message")) {
-                    return Result(false, tasksObj.optString("message", "خطا در دریافت تسک‌ها"))
-                }
-                val arr = tasksObj.optJSONArray("tasks") ?: JSONArray()
-                val list = mutableListOf<TaskItem>()
-                for (i in 0 until arr.length()) {
-                    val o = arr.getJSONObject(i)
-                    list.add(
-                        TaskItem(
-                            id = o.optString("id"),
-                            title = o.optString("title"),
-                            status = o.optString("status", "todo"),
-                            priority = o.optInt("priority", 0),
-                            date = o.optString("date"),
-                            created = o.optString("created"),
-                            group = o.optString("group", "none"),
-                            notes = o.optString("notes")
-                        )
+            // درخواست تسک‌ها با RPC POST
+            val tasksPayload = JSONObject().apply {
+                put("fn", "getTasksPage")
+                put("args", JSONArray().put(token).put(0).put(80))
+            }
+            val tasksResp = postJson(url, tasksPayload.toString())
+            val tasksObj = parseJsonSafe(tasksResp)
+            if (!tasksObj.optBoolean("success", true) && tasksObj.has("message")) {
+                return Result(false, tasksObj.optString("message", "خطا در دریافت تسک‌ها"))
+            }
+            val arr = tasksObj.optJSONArray("tasks") ?: JSONArray()
+            val list = mutableListOf<TaskItem>()
+            for (i in 0 until arr.length()) {
+                val o = arr.getJSONObject(i)
+                list.add(
+                    TaskItem(
+                        id = o.optString("id"),
+                        title = o.optString("title"),
+                        status = o.optString("status", "todo"),
+                        priority = o.optInt("priority", 0),
+                        date = o.optString("date"),
+                        created = o.optString("created"),
+                        group = o.optString("group", "none"),
+                        notes = o.optString("notes")
                     )
-                }
-                list
-            } catch (e: Exception) {
-                // تلاش با POST RPC
-                val payload = JSONObject().apply {
-                    put("fn", "getTasksPage")
-                    put("args", JSONArray().put(token).put(0).put(80))
-                }
-                val resp = postJson(url, payload.toString())
-                val tasksObj = parseJsonSafe(resp)
-                if (!tasksObj.optBoolean("success", true) && tasksObj.has("message")) {
-                    return Result(false, tasksObj.optString("message", "خطا در دریافت تسک‌ها"))
-                }
-                val arr = tasksObj.optJSONArray("tasks") ?: JSONArray()
-                val list = mutableListOf<TaskItem>()
-                for (i in 0 until arr.length()) {
-                    val o = arr.getJSONObject(i)
-                    list.add(
-                        TaskItem(
-                            id = o.optString("id"),
-                            title = o.optString("title"),
-                            status = o.optString("status", "todo"),
-                            priority = o.optInt("priority", 0),
-                            date = o.optString("date"),
-                            created = o.optString("created"),
-                            group = o.optString("group", "none"),
-                            notes = o.optString("notes")
-                        )
-                    )
-                }
-                list
+                )
             }
 
             val cache = WidgetCache(
-                tasks = tasks,
+                tasks = list,
                 groups = groupsMap,
                 selectedGroupKey = selectedGroup,
                 updatedAt = nowTime(),
@@ -268,45 +202,18 @@ object ApiClient {
                 put("mainTask", JSONObject.NULL)
                 put("subtasks", JSONArray())
             }
-            // ارسال با doGet - ابتدا تلاش با action، اگر نشد با POST RPC
-            val argsData = JSONArray().put(token).put(task)
-            var result: Result? = null
-            
-            // تلاش اول: doGet با action
-            try {
-                val reqUrl = buildString {
-                    append(url)
-                    append(if (url.contains("?")) "&" else "?")
-                    append("action=upsertTask")
-                    append("&data=")
-                    append(URLEncoder.encode(argsData.toString(), "UTF-8"))
-                }
-                val resp = getText(reqUrl)
-                val obj = parseJsonSafe(resp)
-                if (obj.optBoolean("success", false)) {
-                    result = Result(true, "تسک اضافه شد")
-                } else if (obj.optString("message", "").contains("Action not found")) {
-                    // اگر action پیدا نشد، با POST RPC ادامه بده
-                    throw Exception("Action not found")
-                } else {
-                    result = Result(false, obj.optString("message", "خطا در افزودن"))
-                }
-            } catch (e: Exception) {
-                // تلاش دوم: POST RPC
-                val payload = JSONObject().apply {
-                    put("fn", "upsertTask")
-                    put("args", JSONArray().put(token).put(task))
-                }
-                val resp = postJson(url, payload.toString())
-                val obj = parseJsonSafe(resp)
-                if (obj.optBoolean("success", false)) {
-                    result = Result(true, "تسک اضافه شد")
-                } else {
-                    result = Result(false, obj.optString("message", "خطا در افزودن"))
-                }
+            // ارسال با RPC POST
+            val payload = JSONObject().apply {
+                put("fn", "upsertTask")
+                put("args", JSONArray().put(token).put(task))
             }
-            
-            result ?: Result(false, "خطای ناشناخته")
+            val resp = postJson(url, payload.toString())
+            val obj = parseJsonSafe(resp)
+            if (obj.optBoolean("success", false)) {
+                Result(true, "تسک اضافه شد")
+            } else {
+                Result(false, obj.optString("message", "خطا در افزودن"))
+            }
         } catch (e: Exception) {
             Result(false, e.message ?: "خطای شبکه")
         }
@@ -330,44 +237,18 @@ object ApiClient {
                 put("subtasks", JSONArray())
                 if (newStatus == "done") put("doneAt", nowTime())
             }
-            // ارسال با doGet - ابتدا تلاش با action، اگر نشد با POST RPC
-            val argsData = JSONArray().put(token).put(taskJson)
-            var result: Result? = null
-            
-            // تلاش اول: doGet با action
-            try {
-                val reqUrl = buildString {
-                    append(url)
-                    append(if (url.contains("?")) "&" else "?")
-                    append("action=upsertTask")
-                    append("&data=")
-                    append(URLEncoder.encode(argsData.toString(), "UTF-8"))
-                }
-                val resp = getText(reqUrl)
-                val obj = parseJsonSafe(resp)
-                if (obj.optBoolean("success", false)) {
-                    result = Result(true, "وضعیت به‌روز شد")
-                } else if (obj.optString("message", "").contains("Action not found")) {
-                    throw Exception("Action not found")
-                } else {
-                    result = Result(false, obj.optString("message", "خطا"))
-                }
-            } catch (e: Exception) {
-                // تلاش دوم: POST RPC
-                val payload = JSONObject().apply {
-                    put("fn", "upsertTask")
-                    put("args", JSONArray().put(token).put(taskJson))
-                }
-                val resp = postJson(url, payload.toString())
-                val obj = parseJsonSafe(resp)
-                if (obj.optBoolean("success", false)) {
-                    result = Result(true, "وضعیت به‌روز شد")
-                } else {
-                    result = Result(false, obj.optString("message", "خطا"))
-                }
+            // ارسال با RPC POST
+            val payload = JSONObject().apply {
+                put("fn", "upsertTask")
+                put("args", JSONArray().put(token).put(taskJson))
             }
-            
-            result ?: Result(false, "خطای ناشناخته")
+            val resp = postJson(url, payload.toString())
+            val obj = parseJsonSafe(resp)
+            if (obj.optBoolean("success", false)) {
+                Result(true, "وضعیت به‌روز شد")
+            } else {
+                Result(false, obj.optString("message", "خطا"))
+            }
         } catch (e: Exception) {
             Result(false, e.message ?: "خطای شبکه")
         }
