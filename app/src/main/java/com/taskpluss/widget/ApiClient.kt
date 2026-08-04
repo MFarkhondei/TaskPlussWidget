@@ -140,7 +140,7 @@ object ApiClient {
     fun fetchAll(baseUrl: String, token: String, selectedGroup: String): Result {
         val url = normalizeUrl(baseUrl)
         return try {
-            // درخواست گروه‌ها با doGet - ارسال action به همراه data
+            // درخواست گروه‌ها با doGet
             val groupsDataObj = JSONObject().apply {
                 put("token", token)
             }
@@ -175,37 +175,68 @@ object ApiClient {
                 groupsMap["none"] = GroupItem("none", "بدون گروه")
             }
 
-            // درخواست تسک‌ها با doGet - ارسال action به همراه data
-            val tasksDataObj = JSONArray().put(token).put(0).put(80)
-            val tasksUrl = buildString {
-                append(url)
-                append(if (url.contains("?")) "&" else "?")
-                append("action=getTasksPage")
-                append("&data=")
-                append(URLEncoder.encode(tasksDataObj.toString(), "UTF-8"))
-            }
-            val tasksResp = getText(tasksUrl)
-            val tasksObj = parseJsonSafe(tasksResp)
-            if (!tasksObj.optBoolean("success", true) && tasksObj.has("message")) {
-                return Result(false, tasksObj.optString("message", "خطا در دریافت تسک‌ها"))
-            }
-
-            val tasks = mutableListOf<TaskItem>()
-            val arr = tasksObj.optJSONArray("tasks") ?: JSONArray()
-            for (i in 0 until arr.length()) {
-                val o = arr.getJSONObject(i)
-                tasks.add(
-                    TaskItem(
-                        id = o.optString("id"),
-                        title = o.optString("title"),
-                        status = o.optString("status", "todo"),
-                        priority = o.optInt("priority", 0),
-                        date = o.optString("date"),
-                        created = o.optString("created"),
-                        group = o.optString("group", "none"),
-                        notes = o.optString("notes")
+            // درخواست تسک‌ها - ابتدا با doGet، اگر نشد با POST RPC
+            val tasks = try {
+                val tasksDataObj = JSONArray().put(token).put(0).put(80)
+                val tasksUrl = buildString {
+                    append(url)
+                    append(if (url.contains("?")) "&" else "?")
+                    append("action=getTasksPage")
+                    append("&data=")
+                    append(URLEncoder.encode(tasksDataObj.toString(), "UTF-8"))
+                }
+                val tasksResp = getText(tasksUrl)
+                val tasksObj = parseJsonSafe(tasksResp)
+                if (!tasksObj.optBoolean("success", true) && tasksObj.has("message")) {
+                    return Result(false, tasksObj.optString("message", "خطا در دریافت تسک‌ها"))
+                }
+                val arr = tasksObj.optJSONArray("tasks") ?: JSONArray()
+                val list = mutableListOf<TaskItem>()
+                for (i in 0 until arr.length()) {
+                    val o = arr.getJSONObject(i)
+                    list.add(
+                        TaskItem(
+                            id = o.optString("id"),
+                            title = o.optString("title"),
+                            status = o.optString("status", "todo"),
+                            priority = o.optInt("priority", 0),
+                            date = o.optString("date"),
+                            created = o.optString("created"),
+                            group = o.optString("group", "none"),
+                            notes = o.optString("notes")
+                        )
                     )
-                )
+                }
+                list
+            } catch (e: Exception) {
+                // تلاش با POST RPC
+                val payload = JSONObject().apply {
+                    put("fn", "getTasksPage")
+                    put("args", JSONArray().put(token).put(0).put(80))
+                }
+                val resp = postJson(url, payload.toString())
+                val tasksObj = parseJsonSafe(resp)
+                if (!tasksObj.optBoolean("success", true) && tasksObj.has("message")) {
+                    return Result(false, tasksObj.optString("message", "خطا در دریافت تسک‌ها"))
+                }
+                val arr = tasksObj.optJSONArray("tasks") ?: JSONArray()
+                val list = mutableListOf<TaskItem>()
+                for (i in 0 until arr.length()) {
+                    val o = arr.getJSONObject(i)
+                    list.add(
+                        TaskItem(
+                            id = o.optString("id"),
+                            title = o.optString("title"),
+                            status = o.optString("status", "todo"),
+                            priority = o.optInt("priority", 0),
+                            date = o.optString("date"),
+                            created = o.optString("created"),
+                            group = o.optString("group", "none"),
+                            notes = o.optString("notes")
+                        )
+                    )
+                }
+                list
             }
 
             val cache = WidgetCache(
@@ -237,22 +268,45 @@ object ApiClient {
                 put("mainTask", JSONObject.NULL)
                 put("subtasks", JSONArray())
             }
-            // ارسال با doGet - استفاده از action مستقیم و data
+            // ارسال با doGet - ابتدا تلاش با action، اگر نشد با POST RPC
             val argsData = JSONArray().put(token).put(task)
-            val reqUrl = buildString {
-                append(url)
-                append(if (url.contains("?")) "&" else "?")
-                append("action=upsertTask")
-                append("&data=")
-                append(URLEncoder.encode(argsData.toString(), "UTF-8"))
+            var result: Result? = null
+            
+            // تلاش اول: doGet با action
+            try {
+                val reqUrl = buildString {
+                    append(url)
+                    append(if (url.contains("?")) "&" else "?")
+                    append("action=upsertTask")
+                    append("&data=")
+                    append(URLEncoder.encode(argsData.toString(), "UTF-8"))
+                }
+                val resp = getText(reqUrl)
+                val obj = parseJsonSafe(resp)
+                if (obj.optBoolean("success", false)) {
+                    result = Result(true, "تسک اضافه شد")
+                } else if (obj.optString("message", "").contains("Action not found")) {
+                    // اگر action پیدا نشد، با POST RPC ادامه بده
+                    throw Exception("Action not found")
+                } else {
+                    result = Result(false, obj.optString("message", "خطا در افزودن"))
+                }
+            } catch (e: Exception) {
+                // تلاش دوم: POST RPC
+                val payload = JSONObject().apply {
+                    put("fn", "upsertTask")
+                    put("args", JSONArray().put(token).put(task))
+                }
+                val resp = postJson(url, payload.toString())
+                val obj = parseJsonSafe(resp)
+                if (obj.optBoolean("success", false)) {
+                    result = Result(true, "تسک اضافه شد")
+                } else {
+                    result = Result(false, obj.optString("message", "خطا در افزودن"))
+                }
             }
-            val resp = getText(reqUrl)
-            val obj = parseJsonSafe(resp)
-            if (obj.optBoolean("success", false)) {
-                Result(true, "تسک اضافه شد")
-            } else {
-                Result(false, obj.optString("message", "خطا در افزودن"))
-            }
+            
+            result ?: Result(false, "خطای ناشناخته")
         } catch (e: Exception) {
             Result(false, e.message ?: "خطای شبکه")
         }
@@ -276,22 +330,44 @@ object ApiClient {
                 put("subtasks", JSONArray())
                 if (newStatus == "done") put("doneAt", nowTime())
             }
-            // ارسال با doGet - استفاده از action مستقیم و data
+            // ارسال با doGet - ابتدا تلاش با action، اگر نشد با POST RPC
             val argsData = JSONArray().put(token).put(taskJson)
-            val reqUrl = buildString {
-                append(url)
-                append(if (url.contains("?")) "&" else "?")
-                append("action=upsertTask")
-                append("&data=")
-                append(URLEncoder.encode(argsData.toString(), "UTF-8"))
+            var result: Result? = null
+            
+            // تلاش اول: doGet با action
+            try {
+                val reqUrl = buildString {
+                    append(url)
+                    append(if (url.contains("?")) "&" else "?")
+                    append("action=upsertTask")
+                    append("&data=")
+                    append(URLEncoder.encode(argsData.toString(), "UTF-8"))
+                }
+                val resp = getText(reqUrl)
+                val obj = parseJsonSafe(resp)
+                if (obj.optBoolean("success", false)) {
+                    result = Result(true, "وضعیت به‌روز شد")
+                } else if (obj.optString("message", "").contains("Action not found")) {
+                    throw Exception("Action not found")
+                } else {
+                    result = Result(false, obj.optString("message", "خطا"))
+                }
+            } catch (e: Exception) {
+                // تلاش دوم: POST RPC
+                val payload = JSONObject().apply {
+                    put("fn", "upsertTask")
+                    put("args", JSONArray().put(token).put(taskJson))
+                }
+                val resp = postJson(url, payload.toString())
+                val obj = parseJsonSafe(resp)
+                if (obj.optBoolean("success", false)) {
+                    result = Result(true, "وضعیت به‌روز شد")
+                } else {
+                    result = Result(false, obj.optString("message", "خطا"))
+                }
             }
-            val resp = getText(reqUrl)
-            val obj = parseJsonSafe(resp)
-            if (obj.optBoolean("success", false)) {
-                Result(true, "وضعیت به‌روز شد")
-            } else {
-                Result(false, obj.optString("message", "خطا"))
-            }
+            
+            result ?: Result(false, "خطای ناشناخته")
         } catch (e: Exception) {
             Result(false, e.message ?: "خطای شبکه")
         }
