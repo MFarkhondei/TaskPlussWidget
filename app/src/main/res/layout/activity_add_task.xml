@@ -46,7 +46,17 @@
         android:layout_height="wrap_content"
         android:text="ذخیره تسک"
         android:textColor="#0A0F1A"
-        android:backgroundTint="#F5C542" />
+        android:backgroundTint="#F5C542"
+        android:layout_marginBottom="10dp" />
+
+    <Button
+        android:id="@+id/btn_close"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="بستن"
+        android:textColor="#F8FAFC"
+        android:backgroundTint="#1A2438"
+        android:layout_marginBottom="8dp" />
 
     <TextView
         android:id="@+id/tv_add_status"
@@ -55,7 +65,7 @@
         android:text=""
         android:textSize="13sp"
         android:textColor="#94A3B8"
-        android:paddingTop="12dp"
+        android:paddingTop="8dp"
         android:gravity="center" />
 
 </LinearLayout>

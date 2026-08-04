@@ -7,15 +7,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /**
- * Transparent activity used for manual refresh from the widget.
- * Runs the same network path as ConfigActivity (no background network limits).
+ * Activity شفاف بدون dim — همان مسیر شبکه ConfigActivity
  */
 class SilentRefreshActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val cache = Prefs.run { loadCache() }.copy(updatedAt = "در حال به‌روزرسانی…", offline = false)
+        WidgetRenderer.applyData(this, cache)
+
+        val appCtx = applicationContext
         CoroutineScope(Dispatchers.IO).launch {
-            WidgetRenderer.fetchAndApply(this@SilentRefreshActivity)
-            finish()
+            try {
+                WidgetRenderer.fetchAndApply(appCtx)
+            } finally {
+                runOnUiThread { finish() }
+            }
         }
     }
 }

@@ -18,7 +18,10 @@ class AddTaskActivity : AppCompatActivity() {
 
         val etTitle = findViewById<EditText>(R.id.et_task_title)
         val btnSave = findViewById<Button>(R.id.btn_save_task)
+        val btnClose = findViewById<Button>(R.id.btn_close)
         val tvStatus = findViewById<TextView>(R.id.tv_add_status)
+
+        btnClose.setOnClickListener { finish() }
 
         btnSave.setOnClickListener {
             val title = etTitle.text?.toString()?.trim().orEmpty()
@@ -35,21 +38,23 @@ class AddTaskActivity : AppCompatActivity() {
 
             tvStatus.text = "در حال ذخیره…"
             btnSave.isEnabled = false
+            btnClose.isEnabled = false
 
             CoroutineScope(Dispatchers.Main).launch {
                 val result = withContext(Dispatchers.IO) {
                     ApiClient.addTask(baseUrl, token, title)
                 }
                 if (result.success) {
-                    tvStatus.text = "ذخیره شد"
                     Toast.makeText(this@AddTaskActivity, "تسک اضافه شد", Toast.LENGTH_SHORT).show()
-                    withContext(Dispatchers.IO) {
-                        WidgetRenderer.fetchAndApply(this@AddTaskActivity)
-                    }
+                    val appCtx = applicationContext
                     finish()
+                    CoroutineScope(Dispatchers.IO).launch {
+                        WidgetRenderer.fetchAndApply(appCtx)
+                    }
                 } else {
                     tvStatus.text = result.message
                     btnSave.isEnabled = true
+                    btnClose.isEnabled = true
                 }
             }
         }

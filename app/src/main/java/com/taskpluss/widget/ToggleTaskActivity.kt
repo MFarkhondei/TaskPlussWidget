@@ -14,28 +14,37 @@ class ToggleTaskActivity : Activity() {
             return
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val baseUrl = Prefs.run { webappUrl }
-            val token = Prefs.run { token }
-            val cache = Prefs.run { loadCache() }
-            val task = cache.tasks.find { it.id == taskId }
+        val appCtx = applicationContext
+        val cacheHint = Prefs.run { loadCache() }.copy(updatedAt = "…")
+        WidgetRenderer.applyData(this, cacheHint)
 
-            if (task != null && baseUrl.isNotBlank() && token.isNotBlank()) {
-                val result = ApiClient.toggleTaskDone(baseUrl, token, task)
-                if (result.success) {
-                    // Optimistic local update
-                    val newStatus = if (task.status == "done") "todo" else "done"
-                    val updated = cache.tasks.map {
-                        if (it.id == taskId) it.copy(status = newStatus) else it
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val baseUrl = Prefs.run { appCtx.webappUrl }
+                val token = Prefs.run { appCtx.token }
+                val cache = Prefs.run { appCtx.loadCache() }
+                val task = cache.tasks.find { it.id == taskId }
+
+                if (task != null && baseUrl.isNotBlank() && token.isNotBlank()) {
+                    val result = ApiClient.toggleTaskDone(baseUrl, token, task)
+                    if (result.success) {
+                        val newStatus = if (task.status == "done") "todo" else "done"
+                        val updated = cache.tasks.map {
+                            if (it.id == taskId) it.copy(status = newStatus) else it
+                        }
+                        val newCache = cache.copy(
+                            tasks = updated,
+                            offline = false,
+                            updatedAt = JalaliUtils.nowTehranJalaliString()
+                        )
+                        Prefs.run { appCtx.saveCache(newCache) }
+                        WidgetRenderer.applyData(appCtx, newCache)
                     }
-                    val newCache = cache.copy(tasks = updated, offline = false)
-                    Prefs.run { saveCache(newCache) }
-                    WidgetRenderer.applyData(this@ToggleTaskActivity, newCache)
                 }
+                WidgetRenderer.fetchAndApply(appCtx)
+            } finally {
+                runOnUiThread { finish() }
             }
-            // Full refresh
-            WidgetRenderer.fetchAndApply(this@ToggleTaskActivity)
-            finish()
         }
     }
 }
