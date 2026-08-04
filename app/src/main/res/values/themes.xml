@@ -11,6 +11,21 @@
         <item name="android:textColorSecondary">#94A3B8</item>
         <item name="android:fontFamily">@font/vazirmatn</item>
         <item name="fontFamily">@font/vazirmatn</item>
+        <item name="android:textViewStyle">@style/TextView.Vazir</item>
+        <item name="buttonStyle">@style/Button.Vazir</item>
+        <item name="editTextStyle">@style/EditText.Vazir</item>
+    </style>
+
+    <style name="TextView.Vazir" parent="android:Widget.TextView">
+        <item name="android:fontFamily">@font/vazirmatn</item>
+    </style>
+    <style name="Button.Vazir" parent="Widget.MaterialComponents.Button">
+        <item name="android:fontFamily">@font/vazirmatn</item>
+        <item name="fontFamily">@font/vazirmatn</item>
+    </style>
+    <style name="EditText.Vazir" parent="Widget.AppCompat.EditText">
+        <item name="android:fontFamily">@font/vazirmatn</item>
+        <item name="fontFamily">@font/vazirmatn</item>
     </style>
 
     <style name="Theme.TaskPlussWidget.Transparent" parent="Theme.TaskPlussWidget">
