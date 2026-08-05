@@ -1,7 +1,5 @@
 package com.taskpluss.widget
 
-import android.app.DatePickerDialog
-import android.content.Intent
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -15,7 +13,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Calendar as JavaCalendar
 
 class TaskFormActivity : AppCompatActivity() {
 
@@ -40,6 +37,7 @@ class TaskFormActivity : AppCompatActivity() {
         val tvStatus = findViewById<TextView>(R.id.tv_add_status)
 
         val priorityLabels = listOf(
+            "بدون اولویت",
             "۱ — بالاترین",
             "۲ — بالا",
             "۳ — متوسط",
@@ -49,7 +47,7 @@ class TaskFormActivity : AppCompatActivity() {
         spinnerPriority.adapter = ArrayAdapter(
             this, android.R.layout.simple_spinner_dropdown_item, priorityLabels
         )
-        spinnerPriority.setSelection(2)
+        spinnerPriority.setSelection(0)
 
         val cache = Prefs.loadCache(this)
         groupKeys.clear()
@@ -58,7 +56,6 @@ class TaskFormActivity : AppCompatActivity() {
         groupLabels.add("بدون گروه")
         cache.groups.entries
             .filter { it.key != "none" }
-            .sortedBy { it.value.name }
             .forEach {
                 groupKeys.add(it.key)
                 groupLabels.add(it.value.name)
@@ -76,35 +73,21 @@ class TaskFormActivity : AppCompatActivity() {
                 btnSave.text = "ذخیره تغییرات"
                 etTitle.setText(t.title)
                 etNotes.setText(t.notes)
-                val p = t.priority.coerceIn(1, 5)
-                if (t.priority in 1..5) spinnerPriority.setSelection(p - 1)
+                val pSel = if (t.priority in 1..5) t.priority else 0
+                spinnerPriority.setSelection(pSel)
                 val gi = groupKeys.indexOf(if (t.group.isBlank()) "none" else t.group)
                 if (gi >= 0) spinnerGroup.setSelection(gi)
                 selectedDateJalali = t.date.trim()
                 tvDueDate.text = if (selectedDateJalali.isBlank()) "بدون تاریخ" else selectedDateJalali
-            } else {
-                tvFormTitle.text = "افزودن تسک"
             }
-        } else {
-            tvFormTitle.text = "افزودن تسک"
         }
 
         btnPickDate.setOnClickListener {
-            val c = JavaCalendar.getInstance()
-            DatePickerDialog(
-                this,
-                { _, y, month, day ->
-                    val gc = JavaCalendar.getInstance().apply {
-                        set(y, month, day, 12, 0, 0)
-                        set(JavaCalendar.MILLISECOND, 0)
-                    }
-                    selectedDateJalali = JalaliUtils.jalaliDateFromMillis(gc.timeInMillis)
-                    tvDueDate.text = selectedDateJalali
-                },
-                c.get(JavaCalendar.YEAR),
-                c.get(JavaCalendar.MONTH),
-                c.get(JavaCalendar.DAY_OF_MONTH)
-            ).show()
+            val initial = JalaliUtils.parseJalaliDate(selectedDateJalali)
+            JalaliDatePickerDialog.show(this, initial) { y, m, d ->
+                selectedDateJalali = JalaliUtils.formatJalaliDate(y, m, d)
+                tvDueDate.text = selectedDateJalali
+            }
         }
 
         btnClearDate.setOnClickListener {
@@ -127,7 +110,7 @@ class TaskFormActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val priority = spinnerPriority.selectedItemPosition + 1
+            val priority = spinnerPriority.selectedItemPosition.coerceIn(0, 5)
             val groupKey = groupKeys.getOrElse(spinnerGroup.selectedItemPosition) { "none" }
             val notes = etNotes.text?.toString()?.trim().orEmpty()
             val date = selectedDateJalali
