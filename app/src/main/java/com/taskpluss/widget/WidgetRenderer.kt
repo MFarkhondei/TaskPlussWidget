@@ -56,9 +56,10 @@ object WidgetRenderer {
     private fun buildRemoteViews(context: Context, cache: WidgetCache, appWidgetId: Int): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.widget_layout)
 
+        val activeAll = cache.tasks.count { it.status != "done" }
         val statusText = when {
-            cache.offline -> "آفلاین"
-            cache.updatedAt.isNotBlank() -> cache.updatedAt
+            cache.offline -> "آفلاین · $activeAll"
+            cache.updatedAt.isNotBlank() -> "${cache.updatedAt} · $activeAll"
             else -> "—"
         }
         rv.setTextViewText(R.id.tv_updated, statusText)
@@ -124,7 +125,6 @@ object WidgetRenderer {
             }
         }
 
-        // ‹ و › جابه‌جا نسبت به قبل
         val prevPi = PendingIntent.getActivity(
             context, 50,
             Intent(context, GroupPageActivity::class.java).apply { putExtra("delta", 1) },
@@ -153,10 +153,10 @@ object WidgetRenderer {
         )
         rv.setPendingIntentTemplate(R.id.list_tasks, templatePi)
 
-        val activeCount = cache.tasks.count { t ->
+        val activeInGroup = cache.tasks.count { t ->
             t.status != "done" && (cache.selectedGroupKey == "all" || t.group == cache.selectedGroupKey)
         }
-        if (activeCount == 0) {
+        if (activeInGroup == 0) {
             rv.setViewVisibility(R.id.tv_empty, View.VISIBLE)
             rv.setViewVisibility(R.id.list_tasks, View.GONE)
         } else {
