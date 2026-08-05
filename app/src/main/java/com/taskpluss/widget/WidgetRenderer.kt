@@ -124,20 +124,21 @@ object WidgetRenderer {
             }
         }
 
+        // ‹ و › جابه‌جا نسبت به قبل
         val prevPi = PendingIntent.getActivity(
             context, 50,
-            Intent(context, GroupPageActivity::class.java).apply { putExtra("delta", -1) },
+            Intent(context, GroupPageActivity::class.java).apply { putExtra("delta", 1) },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val nextPi = PendingIntent.getActivity(
             context, 51,
-            Intent(context, GroupPageActivity::class.java).apply { putExtra("delta", 1) },
+            Intent(context, GroupPageActivity::class.java).apply { putExtra("delta", -1) },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         rv.setOnClickPendingIntent(R.id.btn_group_prev, prevPi)
         rv.setOnClickPendingIntent(R.id.btn_group_next, nextPi)
-        rv.setTextColor(R.id.btn_group_prev, if (safePage > 0) 0xFFF5C542.toInt() else 0xFF64748B.toInt())
-        rv.setTextColor(R.id.btn_group_next, if (safePage < maxPage) 0xFFF5C542.toInt() else 0xFF64748B.toInt())
+        rv.setTextColor(R.id.btn_group_prev, if (safePage < maxPage) 0xFFF5C542.toInt() else 0xFF64748B.toInt())
+        rv.setTextColor(R.id.btn_group_next, if (safePage > 0) 0xFFF5C542.toInt() else 0xFF64748B.toInt())
 
         val serviceIntent = Intent(context, TaskListService::class.java).apply {
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
