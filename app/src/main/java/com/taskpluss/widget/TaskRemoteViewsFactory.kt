@@ -38,26 +38,26 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         rv.setTextViewText(R.id.tv_task_title, t.title)
         rv.setImageViewResource(R.id.iv_check, R.drawable.ic_check_empty)
         rv.setTextColor(R.id.tv_task_title, 0xFFF8FAFC.toInt())
-        val pText = when {
-            t.priority >= 3 -> "!!!"
-            t.priority == 2 -> "!!"
-            t.priority == 1 -> "!"
-            else -> ""
-        }
-        rv.setTextViewText(R.id.tv_task_priority, pText)
-        rv.setTextColor(
-            R.id.tv_task_priority,
-            when {
-                t.priority >= 3 -> 0xFFF87171.toInt()
-                t.priority == 2 -> 0xFFF5C542.toInt()
-                else -> 0xFF34D399.toInt()
-            }
-        )
+
+        val label = if (t.priority in 1..5) "P${t.priority}" else ""
+        rv.setTextViewText(R.id.tv_task_priority, label)
+        rv.setTextColor(R.id.tv_task_priority, priorityColor(t.priority))
+
+        // فقط کلیک روی دایره کنار تسک
         val fill = Intent().apply { putExtra("task_id", t.id) }
-        rv.setOnClickFillInIntent(R.id.item_task_root, fill)
         rv.setOnClickFillInIntent(R.id.iv_check, fill)
-        rv.setOnClickFillInIntent(R.id.tv_task_title, fill)
+
         return rv
+    }
+
+    /** اولویت ۱ = قرمز، ۵ = سبز، بینشان طیف */
+    private fun priorityColor(p: Int): Int = when (p) {
+        1 -> 0xFFF87171.toInt()
+        2 -> 0xFFFB923C.toInt()
+        3 -> 0xFFF5C542.toInt()
+        4 -> 0xFFA3E635.toInt()
+        5 -> 0xFF34D399.toInt()
+        else -> 0xFF64748B.toInt()
     }
 
     override fun getLoadingView(): RemoteViews? = null
