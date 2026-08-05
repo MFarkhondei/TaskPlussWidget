@@ -91,9 +91,9 @@ object WidgetRenderer {
 
         val allKeys = mutableListOf("all", "by_priority")
         val allNames = mutableListOf("همه", "اولویت‌بندی")
+        // ترتیب مطابق جدول (بدون sort الفبایی)
         cache.groups.entries
             .filter { it.key != "none" }
-            .sortedBy { it.value.name }
             .forEach {
                 allKeys.add(it.key)
                 allNames.add(it.value.name)
