@@ -3,29 +3,33 @@
 *.class
 *.o
 *.obj
+*.exe
+*.dll
 *.so
 *.a
-*.dll
-*.exe
 *.out
+*.pyc
+__pycache__/
 
 # Dependencies
-**/build/
-**/target/
+node_modules/
+venv/
+.venv/
+.mypy_cache/
+.pytest_cache/
+target/
 .gradle/
-**/.gradle/
-**/node_modules/
-**/venv/
-**/.venv/
-**/__pycache__/
-**/.mypy_cache/
-**/.pytest_cache/
+build/
+dist/
 
-# Editors and IDEs
+# Editors
 .vscode/
 .idea/
 *.swp
 *.swo
+
+# Logs and temp files
+*.log
 *.tmp
 
 # System files
@@ -34,9 +38,6 @@ Thumbs.db
 .env
 .env.local
 *.env.*
-
-# Logs
-*.log
 
 # Coverage
 coverage/

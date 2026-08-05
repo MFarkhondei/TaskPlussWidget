@@ -15,7 +15,8 @@
         android:layout_width="22dp"
         android:layout_height="22dp"
         android:src="@drawable/ic_check_empty"
-        android:contentDescription="وضعیت" />
+        android:contentDescription="وضعیت"
+        android:tint="#F5C542" />
 
     <TextView
         android:id="@+id/tv_task_title"
@@ -39,5 +40,6 @@
         android:textSize="11sp"
         android:textColor="#F5C542"
         android:fontFamily="@font/vazirmatn_regular"
-        android:paddingStart="4dp" />
+        android:paddingStart="4dp"
+        android:paddingEnd="8dp" />
 </LinearLayout>

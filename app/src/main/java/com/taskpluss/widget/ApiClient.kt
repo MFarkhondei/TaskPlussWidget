@@ -136,7 +136,7 @@ object ApiClient {
             ))
             val tasksData = JSONObject().apply {
                 put("page", 0)
-                put("limit", 80)
+                put("limit", 500)  // افزایش محدودیت برای دریافت همه تسک‌ها
             }
             val tasksUrl = buildUrl(baseUrl, mapOf(
                 "action" to "getTasks",
