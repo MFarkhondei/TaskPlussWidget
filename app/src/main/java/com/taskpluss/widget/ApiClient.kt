@@ -13,11 +13,10 @@ import com.taskpluss.widget.model.WidgetCache
 
 /**
  * کلاینت API مطابق بک‌اند تسک‌پلاس (doGet + action)
- * همان مسیر فرانت‌اند: action=login|getGroups|getTasks|addTask|updateTask
  */
 object ApiClient {
 
-    private const val TIMEOUT = 20000
+    private const val TIMEOUT = 60000
 
     const val DEFAULT_WEBAPP_URL =
         "https://script.google.com/macros/s/AKfycbx0W1jYG8-N4le384oJFYIwXD1OAgYb5lc6E6vOe9CDO3ov7fmkNRXJNdOvw_GSzGalkw/exec"
@@ -134,35 +133,66 @@ object ApiClient {
                 "action" to "getGroups",
                 "token" to token
             ))
-            val tasksData = JSONObject().apply {
-                put("page", 0)
-                put("limit", 80)
-            }
-            val tasksUrl = buildUrl(baseUrl, mapOf(
-                "action" to "getTasks",
-                "token" to token,
-                "data" to tasksData.toString()
-            ))
 
-            // هر دو درخواست هم‌زمان اجرا می‌شن به‌جای پشت‌سرهم — تقریباً نصف کردن زمان همگام‌سازی کامل
             var groupsText = ""
-            var tasksText = ""
             var groupsError: Exception? = null
-            var tasksError: Exception? = null
-
             val groupsThread = Thread {
                 try { groupsText = getText(groupsUrl) } catch (e: Exception) { groupsError = e }
             }
-            val tasksThread = Thread {
-                try { tasksText = getText(tasksUrl) } catch (e: Exception) { tasksError = e }
-            }
             groupsThread.start()
-            tasksThread.start()
-            groupsThread.join()
-            tasksThread.join()
 
+            // همه صفحات تسک — بدون سقف تعداد
+            val tasks = mutableListOf<TaskItem>()
+            var page = 0
+            val pageLimit = 200
+            var firstTasksError: Exception? = null
+            while (true) {
+                val tasksData = JSONObject().apply {
+                    put("page", page)
+                    put("limit", pageLimit)
+                }
+                val tasksUrl = buildUrl(baseUrl, mapOf(
+                    "action" to "getTasks",
+                    "token" to token,
+                    "data" to tasksData.toString()
+                ))
+                try {
+                    val tasksObj = parseJson(getText(tasksUrl))
+                    if (tasksObj.has("message") && !tasksObj.optBoolean("success", true)) {
+                        if (page == 0) {
+                            return Result(false, tasksObj.optString("message", "خطا در تسک‌ها"))
+                        }
+                        break
+                    }
+                    val arr = tasksObj.optJSONArray("tasks") ?: JSONArray()
+                    for (i in 0 until arr.length()) {
+                        val o = arr.getJSONObject(i)
+                        tasks.add(
+                            TaskItem(
+                                id = o.optString("id"),
+                                title = o.optString("title"),
+                                status = o.optString("status", "todo"),
+                                priority = o.optInt("priority", 0),
+                                date = o.optString("date"),
+                                created = o.optString("created"),
+                                group = o.optString("group", "none"),
+                                notes = o.optString("notes")
+                            )
+                        )
+                    }
+                    val hasMore = tasksObj.optBoolean("hasMore", arr.length() >= pageLimit)
+                    if (!hasMore || arr.length() == 0) break
+                    page++
+                    if (page > 100) break
+                } catch (e: Exception) {
+                    if (page == 0) firstTasksError = e
+                    break
+                }
+            }
+            firstTasksError?.let { throw it }
+
+            groupsThread.join()
             groupsError?.let { throw it }
-            tasksError?.let { throw it }
 
             val groupsObj = parseJson(groupsText)
             if (groupsObj.has("message") && !groupsObj.optBoolean("success", true)) {
@@ -187,29 +217,6 @@ object ApiClient {
                 groupsMap["none"] = GroupItem("none", "بدون گروه")
             }
 
-            val tasksObj = parseJson(tasksText)
-            if (tasksObj.has("message") && !tasksObj.optBoolean("success", true)) {
-                return Result(false, tasksObj.optString("message", "خطا در تسک‌ها"))
-            }
-
-            val tasks = mutableListOf<TaskItem>()
-            val arr = tasksObj.optJSONArray("tasks") ?: JSONArray()
-            for (i in 0 until arr.length()) {
-                val o = arr.getJSONObject(i)
-                tasks.add(
-                    TaskItem(
-                        id = o.optString("id"),
-                        title = o.optString("title"),
-                        status = o.optString("status", "todo"),
-                        priority = o.optInt("priority", 0),
-                        date = o.optString("date"),
-                        created = o.optString("created"),
-                        group = o.optString("group", "none"),
-                        notes = o.optString("notes")
-                    )
-                )
-            }
-
             Result(
                 true, "موفق",
                 cache = WidgetCache(
@@ -227,7 +234,6 @@ object ApiClient {
 
     fun addTask(baseUrl: String, token: String, title: String): Result {
         return try {
-            // دقیقاً مطابق quickAdd فرانت‌اند تسک‌پلاس
             val created = JalaliUtils.nowTehranJalaliString()
             val id = JalaliUtils.newTaskId()
             val cleanTitle = title.trim()
