@@ -23,10 +23,14 @@ object WidgetRenderer {
             val baseUrl = Prefs.webappUrl(context)
             val token = Prefs.token(context)
             val selected = Prefs.selectedGroupKey(context)
+            val prev = Prefs.loadCache(context)
 
             if (baseUrl.isBlank() || token.isBlank()) {
-                val cache = Prefs.loadCache(context)
-                applyData(context, cache.copy(offline = true), appWidgetIds)
+                applyData(
+                    context,
+                    prev.copy(offline = true, updatedAt = "نیاز به ورود"),
+                    appWidgetIds
+                )
                 return@withContext
             }
 
@@ -35,8 +39,10 @@ object WidgetRenderer {
                 Prefs.saveCache(context, result.cache)
                 applyData(context, result.cache, appWidgetIds)
             } else {
-                val cache = Prefs.loadCache(context).copy(offline = true)
-                applyData(context, cache, appWidgetIds)
+                val err = result.message.take(40).ifBlank { "خطای شبکه" }
+                val failed = prev.copy(offline = true, updatedAt = err)
+                Prefs.saveCache(context, failed)
+                applyData(context, failed, appWidgetIds)
             }
         }
     }
@@ -58,6 +64,7 @@ object WidgetRenderer {
 
         val activeAll = cache.tasks.count { it.status != "done" }
         val statusText = when {
+            cache.offline && cache.updatedAt.isNotBlank() -> cache.updatedAt
             cache.offline -> "آفلاین · $activeAll"
             cache.updatedAt.isNotBlank() -> "${cache.updatedAt} · $activeAll"
             else -> "—"
