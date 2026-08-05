@@ -329,21 +329,30 @@ object ApiClient {
         }
     }
 
-    fun addTask(baseUrl: String, token: String, title: String): Result {
+    fun addTask(
+        baseUrl: String,
+        token: String,
+        title: String,
+        priority: Int = 0,
+        group: String = "none",
+        date: String = "",
+        notes: String = ""
+    ): Result {
         return try {
             val created = JalaliUtils.nowTehranJalaliString()
             val id = JalaliUtils.newTaskId()
             val cleanTitle = title.trim()
+            val g = if (group.isBlank()) "none" else group
             val task = JSONObject().apply {
                 put("id", id)
                 put("title", cleanTitle)
                 put("status", "todo")
-                put("priority", 0)
-                put("date", "")
+                put("priority", priority)
+                put("date", date)
                 put("created", created)
-                put("group", "none")
+                put("group", g)
                 put("tags", JSONArray())
-                put("notes", "")
+                put("notes", notes)
                 put("mainTask", JSONObject.NULL)
                 put("subtasks", JSONArray())
                 put("doingAt", "")
@@ -356,9 +365,54 @@ object ApiClient {
             ))
             val obj = parseJson(getTextWithRetry(url))
             if (obj.optBoolean("success", false)) {
-                Result(true, "تسک اضافه شد ($created)", task = TaskItem(id, cleanTitle, "todo", 0, "", created, "none", ""))
+                Result(
+                    true, "تسک اضافه شد ($created)",
+                    task = TaskItem(
+                        id = id,
+                        title = cleanTitle,
+                        status = "todo",
+                        priority = priority,
+                        date = date,
+                        created = created,
+                        group = g,
+                        notes = notes
+                    )
+                )
             } else {
                 Result(false, obj.optString("message", "خطا در افزودن"))
+            }
+        } catch (e: Exception) {
+            Result(false, e.message ?: "خطای شبکه")
+        }
+    }
+
+    fun updateTaskFull(baseUrl: String, token: String, task: TaskItem): Result {
+        return try {
+            val taskJson = JSONObject().apply {
+                put("id", task.id)
+                put("title", task.title)
+                put("status", task.status.ifBlank { "todo" })
+                put("priority", task.priority)
+                put("date", task.date)
+                put("created", task.created.ifBlank { JalaliUtils.nowTehranJalaliString() })
+                put("group", if (task.group.isBlank()) "none" else task.group)
+                put("tags", JSONArray())
+                put("notes", task.notes)
+                put("mainTask", JSONObject.NULL)
+                put("subtasks", JSONArray())
+                put("doingAt", "")
+                put("doneAt", if (task.status == "done") JalaliUtils.nowTehranJalaliString() else "")
+            }
+            val url = buildUrl(baseUrl, mapOf(
+                "action" to "updateTask",
+                "token" to token,
+                "data" to taskJson.toString()
+            ))
+            val obj = parseJson(getTextWithRetry(url))
+            if (obj.optBoolean("success", false)) {
+                Result(true, "ذخیره شد", task = task)
+            } else {
+                Result(false, obj.optString("message", "خطا در ذخیره"))
             }
         } catch (e: Exception) {
             Result(false, e.message ?: "خطای شبکه")
