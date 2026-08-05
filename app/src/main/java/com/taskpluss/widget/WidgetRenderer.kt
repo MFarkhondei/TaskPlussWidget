@@ -89,8 +89,8 @@ object WidgetRenderer {
         )
         rv.setOnClickPendingIntent(R.id.btn_add_task, addPi)
 
-        val allKeys = mutableListOf("all")
-        val allNames = mutableListOf("همه")
+        val allKeys = mutableListOf("all", "by_priority")
+        val allNames = mutableListOf("همه", "اولویت‌بندی")
         cache.groups.entries
             .filter { it.key != "none" }
             .sortedBy { it.value.name }
@@ -161,7 +161,11 @@ object WidgetRenderer {
         rv.setPendingIntentTemplate(R.id.list_tasks, templatePi)
 
         val activeInGroup = cache.tasks.count { t ->
-            t.status != "done" && (cache.selectedGroupKey == "all" || t.group == cache.selectedGroupKey)
+            if (t.status == "done") false
+            else when (cache.selectedGroupKey) {
+                "all", "by_priority" -> true
+                else -> t.group == cache.selectedGroupKey
+            }
         }
         if (activeInGroup == 0) {
             rv.setViewVisibility(R.id.tv_empty, View.VISIBLE)
