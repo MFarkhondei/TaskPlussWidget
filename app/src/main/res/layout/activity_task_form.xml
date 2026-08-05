@@ -10,93 +10,114 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="14dp">
 
         <TextView
             android:id="@+id/tv_form_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="افزودن تسک"
-            android:textSize="22sp"
+            android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="#F5C542"
             android:fontFamily="@font/vazirmatn"
-            android:paddingBottom="16dp" />
+            android:paddingBottom="10dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="عنوان"
             android:textColor="#94A3B8"
-            android:textSize="14sp"
+            android:textSize="12sp"
             android:fontFamily="@font/vazirmatn"
-            android:paddingBottom="4dp" />
+            android:paddingBottom="2dp" />
 
         <EditText
             android:id="@+id/et_task_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="عنوان تسک…"
-            android:minLines="2"
-            android:maxLines="4"
+            android:minLines="1"
+            android:maxLines="2"
             android:gravity="top|start"
             android:inputType="textMultiLine|textCapSentences"
             android:textColor="#F8FAFC"
             android:textColorHint="#64748B"
             android:fontFamily="@font/vazirmatn"
             android:background="@drawable/bg_section"
-            android:padding="14dp"
-            android:layout_marginBottom="12dp"
-            android:textSize="17sp" />
+            android:padding="10dp"
+            android:layout_marginBottom="8dp"
+            android:textSize="14sp" />
 
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="اولویت (۱ بالا … ۵ پایین)"
-            android:textColor="#94A3B8"
-            android:textSize="14sp"
-            android:fontFamily="@font/vazirmatn"
-            android:paddingBottom="4dp" />
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
 
-        <Spinner
-            android:id="@+id/spinner_priority"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_section"
-            android:padding="8dp"
-            android:layout_marginBottom="12dp" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginEnd="6dp">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="گروه"
-            android:textColor="#94A3B8"
-            android:textSize="14sp"
-            android:fontFamily="@font/vazirmatn"
-            android:paddingBottom="4dp" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="اولویت"
+                    android:textColor="#94A3B8"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/vazirmatn"
+                    android:paddingBottom="2dp" />
 
-        <Spinner
-            android:id="@+id/spinner_group"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_section"
-            android:padding="8dp"
-            android:layout_marginBottom="12dp" />
+                <Spinner
+                    android:id="@+id/spinner_priority"
+                    android:layout_width="match_parent"
+                    android:layout_height="42dp"
+                    android:background="@drawable/bg_section"
+                    android:padding="4dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="6dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="گروه"
+                    android:textColor="#94A3B8"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/vazirmatn"
+                    android:paddingBottom="2dp" />
+
+                <Spinner
+                    android:id="@+id/spinner_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="42dp"
+                    android:background="@drawable/bg_section"
+                    android:padding="4dp" />
+            </LinearLayout>
+        </LinearLayout>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="تاریخ انجام (شمسی)"
             android:textColor="#94A3B8"
-            android:textSize="14sp"
+            android:textSize="12sp"
             android:fontFamily="@font/vazirmatn"
-            android:paddingBottom="4dp" />
+            android:paddingBottom="2dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="8dp"
             android:gravity="center_vertical">
 
             <TextView
@@ -105,31 +126,39 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="بدون تاریخ"
-                android:textSize="16sp"
+                android:textSize="13sp"
                 android:textColor="#F8FAFC"
                 android:fontFamily="@font/vazirmatn"
                 android:background="@drawable/bg_section"
-                android:padding="14dp" />
+                android:padding="10dp" />
 
             <Button
                 android:id="@+id/btn_pick_date"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="انتخاب"
+                android:layout_height="40dp"
+                android:text="شمسی"
+                android:textSize="12sp"
                 android:textColor="#0A0F1A"
                 android:fontFamily="@font/vazirmatn"
                 android:backgroundTint="#F5C542"
-                android:layout_marginStart="8dp" />
+                android:layout_marginStart="6dp"
+                android:minWidth="0dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp" />
 
             <Button
                 android:id="@+id/btn_clear_date"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="40dp"
                 android:text="پاک"
+                android:textSize="12sp"
                 android:textColor="#F8FAFC"
                 android:fontFamily="@font/vazirmatn"
                 android:backgroundTint="#1A2438"
-                android:layout_marginStart="4dp" />
+                android:layout_marginStart="4dp"
+                android:minWidth="0dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp" />
         </LinearLayout>
 
         <TextView
@@ -137,55 +166,55 @@
             android:layout_height="wrap_content"
             android:text="یادداشت (اختیاری)"
             android:textColor="#94A3B8"
-            android:textSize="14sp"
+            android:textSize="12sp"
             android:fontFamily="@font/vazirmatn"
-            android:paddingBottom="4dp" />
+            android:paddingBottom="2dp" />
 
         <EditText
             android:id="@+id/et_notes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="یادداشت…"
-            android:minLines="3"
-            android:maxLines="6"
+            android:minLines="2"
+            android:maxLines="3"
             android:gravity="top|start"
             android:inputType="textMultiLine|textCapSentences"
             android:textColor="#F8FAFC"
             android:textColorHint="#64748B"
             android:fontFamily="@font/vazirmatn"
             android:background="@drawable/bg_section"
-            android:padding="14dp"
-            android:layout_marginBottom="16dp"
-            android:textSize="16sp" />
+            android:padding="10dp"
+            android:layout_marginBottom="10dp"
+            android:textSize="13sp" />
 
         <Button
             android:id="@+id/btn_save_task"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="44dp"
             android:text="ذخیره تسک"
             android:textColor="#0A0F1A"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:fontFamily="@font/vazirmatn"
             android:backgroundTint="#F5C542"
-            android:layout_marginBottom="10dp" />
+            android:layout_marginBottom="6dp" />
 
         <Button
             android:id="@+id/btn_close"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:text="بستن"
             android:textColor="#F8FAFC"
-            android:textSize="16sp"
+            android:textSize="13sp"
             android:fontFamily="@font/vazirmatn"
             android:backgroundTint="#1A2438"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="4dp" />
 
         <TextView
             android:id="@+id/tv_add_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text=""
-            android:textSize="14sp"
+            android:textSize="12sp"
             android:textColor="#94A3B8"
             android:fontFamily="@font/vazirmatn" />
     </LinearLayout>
