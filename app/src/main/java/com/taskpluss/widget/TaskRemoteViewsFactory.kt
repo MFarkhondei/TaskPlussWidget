@@ -17,18 +17,16 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         val key = cache.selectedGroupKey
         val active = cache.tasks.filter { it.status != "done" }
 
+        val byPriorityAsc = compareBy<TaskItem> {
+            if (it.priority in 1..5) it.priority else 99
+        }.thenByDescending { it.created }
+
         tasks = when (key) {
             "all" -> active.sortedWith(
                 compareByDescending<TaskItem> { it.created }.thenByDescending { it.id }
             )
-            "by_priority" -> active.sortedWith(
-                compareBy<TaskItem> {
-                    if (it.priority in 1..5) it.priority else 99
-                }.thenByDescending { it.created }
-            )
-            else -> active.filter { it.group == key }.sortedWith(
-                compareByDescending<TaskItem> { it.priority }.thenByDescending { it.created }
-            )
+            "by_priority" -> active.sortedWith(byPriorityAsc)
+            else -> active.filter { it.group == key }.sortedWith(byPriorityAsc)
         }
     }
 
@@ -41,13 +39,12 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         }
         val t = tasks[position]
         val rv = RemoteViews(context.packageName, R.layout.item_task)
-        rv.setTextViewText(R.id.tv_task_title, t.title)
         rv.setImageViewResource(R.id.iv_check, R.drawable.ic_check_empty)
-        rv.setTextColor(R.id.tv_task_title, 0xFFF8FAFC.toInt())
+
+        WidgetText.setTitle(context, rv, R.id.iv_task_title, t.title)
 
         val label = if (t.priority in 1..5) t.priority.toString() else ""
-        rv.setTextViewText(R.id.tv_task_priority, label)
-        rv.setTextColor(R.id.tv_task_priority, priorityColor(t.priority))
+        WidgetText.setPriority(context, rv, R.id.iv_task_priority, label, priorityColor(t.priority))
 
         val toggleFill = Intent().apply {
             putExtra("task_id", t.id)
@@ -59,7 +56,7 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
             putExtra("task_id", t.id)
             putExtra("action", "edit")
         }
-        rv.setOnClickFillInIntent(R.id.tv_task_title, editFill)
+        rv.setOnClickFillInIntent(R.id.iv_task_title, editFill)
         rv.setOnClickFillInIntent(R.id.item_task_root, editFill)
 
         return rv
