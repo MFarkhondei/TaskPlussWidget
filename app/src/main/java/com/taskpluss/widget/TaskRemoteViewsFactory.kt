@@ -16,7 +16,7 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         val cache = Prefs.loadCache(context)
         val key = cache.selectedGroupKey
         val list = if (key == "all") cache.tasks else cache.tasks.filter { it.group == key }
-        val active = list // نمایش همه تسک‌ها شامل done
+        val active = list.filter { it.status != "done" }
         tasks = if (key == "all") {
             active.sortedWith(compareByDescending<TaskItem> { it.created }.thenByDescending { it.id })
         } else {
