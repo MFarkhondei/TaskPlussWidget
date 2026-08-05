@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0A0F1A"
+    android:fillViewport="true"
+    android:layoutDirection="rtl">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:id="@+id/tv_form_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="افزودن تسک"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#F5C542"
+            android:fontFamily="@font/vazirmatn"
+            android:paddingBottom="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="عنوان"
+            android:textColor="#94A3B8"
+            android:textSize="14sp"
+            android:fontFamily="@font/vazirmatn"
+            android:paddingBottom="4dp" />
+
+        <EditText
+            android:id="@+id/et_task_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="عنوان تسک…"
+            android:minLines="2"
+            android:maxLines="4"
+            android:gravity="top|start"
+            android:inputType="textMultiLine|textCapSentences"
+            android:textColor="#F8FAFC"
+            android:textColorHint="#64748B"
+            android:fontFamily="@font/vazirmatn"
+            android:background="@drawable/bg_section"
+            android:padding="14dp"
+            android:layout_marginBottom="12dp"
+            android:textSize="17sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="اولویت (۱ بالا … ۵ پایین)"
+            android:textColor="#94A3B8"
+            android:textSize="14sp"
+            android:fontFamily="@font/vazirmatn"
+            android:paddingBottom="4dp" />
+
+        <Spinner
+            android:id="@+id/spinner_priority"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_section"
+            android:padding="8dp"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="گروه"
+            android:textColor="#94A3B8"
+            android:textSize="14sp"
+            android:fontFamily="@font/vazirmatn"
+            android:paddingBottom="4dp" />
+
+        <Spinner
+            android:id="@+id/spinner_group"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_section"
+            android:padding="8dp"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="تاریخ انجام (شمسی)"
+            android:textColor="#94A3B8"
+            android:textSize="14sp"
+            android:fontFamily="@font/vazirmatn"
+            android:paddingBottom="4dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tv_due_date"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="بدون تاریخ"
+                android:textSize="16sp"
+                android:textColor="#F8FAFC"
+                android:fontFamily="@font/vazirmatn"
+                android:background="@drawable/bg_section"
+                android:padding="14dp" />
+
+            <Button
+                android:id="@+id/btn_pick_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="انتخاب"
+                android:textColor="#0A0F1A"
+                android:fontFamily="@font/vazirmatn"
+                android:backgroundTint="#F5C542"
+                android:layout_marginStart="8dp" />
+
+            <Button
+                android:id="@+id/btn_clear_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="پاک"
+                android:textColor="#F8FAFC"
+                android:fontFamily="@font/vazirmatn"
+                android:backgroundTint="#1A2438"
+                android:layout_marginStart="4dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="یادداشت (اختیاری)"
+            android:textColor="#94A3B8"
+            android:textSize="14sp"
+            android:fontFamily="@font/vazirmatn"
+            android:paddingBottom="4dp" />
+
+        <EditText
+            android:id="@+id/et_notes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="یادداشت…"
+            android:minLines="3"
+            android:maxLines="6"
+            android:gravity="top|start"
+            android:inputType="textMultiLine|textCapSentences"
+            android:textColor="#F8FAFC"
+            android:textColorHint="#64748B"
+            android:fontFamily="@font/vazirmatn"
+            android:background="@drawable/bg_section"
+            android:padding="14dp"
+            android:layout_marginBottom="16dp"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/btn_save_task"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ذخیره تسک"
+            android:textColor="#0A0F1A"
+            android:textSize="16sp"
+            android:fontFamily="@font/vazirmatn"
+            android:backgroundTint="#F5C542"
+            android:layout_marginBottom="10dp" />
+
+        <Button
+            android:id="@+id/btn_close"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="بستن"
+            android:textColor="#F8FAFC"
+            android:textSize="16sp"
+            android:fontFamily="@font/vazirmatn"
+            android:backgroundTint="#1A2438"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tv_add_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="14sp"
+            android:textColor="#94A3B8"
+            android:fontFamily="@font/vazirmatn" />
+    </LinearLayout>
+</ScrollView>
