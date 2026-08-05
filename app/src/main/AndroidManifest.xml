@@ -30,6 +30,15 @@
         </activity>
 
         <activity
+            android:name=".TaskFormActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TaskPlussWidget"
+            android:excludeFromRecents="true"
+            android:windowSoftInputMode="adjustResize"
+            android:taskAffinity=""
+            android:launchMode="singleTask" />
+
+        <activity
             android:name=".AddTaskActivity"
             android:exported="false"
             android:theme="@style/Theme.TaskPlussWidget"
