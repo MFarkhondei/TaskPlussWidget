@@ -16,26 +16,32 @@ object Prefs {
 
     var Context.webappUrl: String
         get() = sp(this).getString("webapp_url", "") ?: ""
+        @JvmName("setWebappUrlExt")
         set(v) { sp(this).edit().putString("webapp_url", v).apply() }
 
     var Context.username: String
         get() = sp(this).getString("username", "") ?: ""
+        @JvmName("setUsernameExt")
         set(v) { sp(this).edit().putString("username", v).apply() }
 
     var Context.token: String
         get() = sp(this).getString("token", "") ?: ""
+        @JvmName("setTokenExt")
         set(v) { sp(this).edit().putString("token", v).apply() }
 
     var Context.intervalMin: Int
         get() = sp(this).getInt("interval_min", 30)
+        @JvmName("setIntervalMinExt")
         set(v) { sp(this).edit().putInt("interval_min", v).apply() }
 
     var Context.selectedGroupKey: String
         get() = sp(this).getString("selected_group", "all") ?: "all"
+        @JvmName("setSelectedGroupKeyExt")
         set(v) { sp(this).edit().putString("selected_group", v).apply() }
 
     var Context.groupPage: Int
         get() = sp(this).getInt("group_page", 0)
+        @JvmName("setGroupPageExt")
         set(v) { sp(this).edit().putInt("group_page", v).apply() }
 
     var Context.cacheJson: String
