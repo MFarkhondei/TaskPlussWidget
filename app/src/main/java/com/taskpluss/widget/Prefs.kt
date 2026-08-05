@@ -80,12 +80,18 @@ object Prefs {
             })
         }
         root.put("tasks", tasksArr)
+        val groupsArr = JSONArray()
         val groupsObj = JSONObject()
         cache.groups.forEach { (k, g) ->
+            if (k == "none") return@forEach
+            groupsArr.put(JSONObject().apply {
+                put("key", g.key); put("name", g.name); put("color", g.color)
+            })
             groupsObj.put(k, JSONObject().apply {
                 put("key", g.key); put("name", g.name); put("color", g.color)
             })
         }
+        root.put("groupsOrder", groupsArr)
         root.put("groups", groupsObj)
         ctx.cacheJson = root.toString()
         ctx.cacheAt = System.currentTimeMillis()
@@ -114,9 +120,21 @@ object Prefs {
                     )
                 )
             }
-            val groups = mutableMapOf<String, GroupItem>()
+            val groups = linkedMapOf<String, GroupItem>()
+            val orderArr = root.optJSONArray("groupsOrder")
             val groupsObj = root.optJSONObject("groups")
-            if (groupsObj != null) {
+            if (orderArr != null && orderArr.length() > 0) {
+                for (i in 0 until orderArr.length()) {
+                    val g = orderArr.optJSONObject(i) ?: continue
+                    val k = g.optString("key")
+                    if (k.isBlank()) continue
+                    groups[k] = GroupItem(
+                        key = k,
+                        name = g.optString("name", k),
+                        color = g.optString("color", "#5B6B7A")
+                    )
+                }
+            } else if (groupsObj != null) {
                 val keys = groupsObj.keys()
                 while (keys.hasNext()) {
                     val k = keys.next()
