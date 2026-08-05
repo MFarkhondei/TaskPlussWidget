@@ -192,7 +192,7 @@ object ApiClient {
         if (baseUrl.isBlank()) return Result(false, "آدرس Web App خالی است")
         if (token.isBlank()) return Result(false, "توکن خالی است — دوباره وارد شوید")
 
-        var groupsMap = mutableMapOf<String, GroupItem>()
+        var groupsMap = linkedMapOf<String, GroupItem>()
         var groupsError: String? = null
         var tasksError: String? = null
         var tasks = mutableListOf<TaskItem>()
@@ -368,14 +368,9 @@ object ApiClient {
                 Result(
                     true, "تسک اضافه شد ($created)",
                     task = TaskItem(
-                        id = id,
-                        title = cleanTitle,
-                        status = "todo",
-                        priority = priority,
-                        date = date,
-                        created = created,
-                        group = g,
-                        notes = notes
+                        id = id, title = cleanTitle, status = "todo",
+                        priority = priority, date = date, created = created,
+                        group = g, notes = notes
                     )
                 )
             } else {
@@ -409,11 +404,8 @@ object ApiClient {
                 "data" to taskJson.toString()
             ))
             val obj = parseJson(getTextWithRetry(url))
-            if (obj.optBoolean("success", false)) {
-                Result(true, "ذخیره شد", task = task)
-            } else {
-                Result(false, obj.optString("message", "خطا در ذخیره"))
-            }
+            if (obj.optBoolean("success", false)) Result(true, "ذخیره شد", task = task)
+            else Result(false, obj.optString("message", "خطا در ذخیره"))
         } catch (e: Exception) {
             Result(false, e.message ?: "خطای شبکه")
         }
