@@ -39,18 +39,17 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         rv.setImageViewResource(R.id.iv_check, R.drawable.ic_check_empty)
         rv.setTextColor(R.id.tv_task_title, 0xFFF8FAFC.toInt())
 
-        val label = if (t.priority in 1..5) "P${t.priority}" else ""
-        rv.setTextViewText(R.id.tv_task_priority, label)
+        // فلش اولویت بدون P — ۱ قرمز … ۵ سبز
+        val arrows = if (t.priority in 1..5) "▲".repeat(t.priority) else ""
+        rv.setTextViewText(R.id.tv_task_priority, arrows)
         rv.setTextColor(R.id.tv_task_priority, priorityColor(t.priority))
 
-        // فقط کلیک روی دایره کنار تسک
         val fill = Intent().apply { putExtra("task_id", t.id) }
         rv.setOnClickFillInIntent(R.id.iv_check, fill)
 
         return rv
     }
 
-    /** اولویت ۱ = قرمز، ۵ = سبز، بینشان طیف */
     private fun priorityColor(p: Int): Int = when (p) {
         1 -> 0xFFF87171.toInt()
         2 -> 0xFFFB923C.toInt()
