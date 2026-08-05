@@ -15,13 +15,24 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
     override fun onDataSetChanged() {
         val cache = Prefs.loadCache(context)
         val key = cache.selectedGroupKey
+        // Filter tasks by group if a specific group is selected
         val list = if (key == "all") cache.tasks else cache.tasks.filter { it.group == key }
+        // Exclude done tasks from the list
         val active = list.filter { it.status != "done" }
         tasks = if (key == "all") {
-            active.sortedWith(compareByDescending<TaskItem> { it.created }.thenByDescending { it.id })
-        } else {
+            // For "all" view: sort by created date descending, then by id
+            // Ensure stable sorting to prevent lazy loading issues
             active.sortedWith(
-                compareByDescending<TaskItem> { it.priority }.thenByDescending { it.created }
+                compareByDescending<TaskItem> { it.created }
+                    .thenByDescending { it.id }
+                    .thenByDescending { it.priority }
+            )
+        } else {
+            // For specific groups: sort by priority descending, then by created date
+            active.sortedWith(
+                compareByDescending<TaskItem> { it.priority }
+                    .thenByDescending { it.created }
+                    .thenByDescending { it.id }
             )
         }
     }
@@ -38,6 +49,24 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         rv.setTextViewText(R.id.tv_task_title, t.title)
         rv.setImageViewResource(R.id.iv_check, R.drawable.ic_check_empty)
         rv.setTextColor(R.id.tv_task_title, 0xFFF8FAFC.toInt())
+        
+        // Calculate icon tint color based on priority (1=red, 5=green, gradient in between)
+        // Priority 1: Red (255, 97, 97)
+        // Priority 5: Green (82, 196, 26)
+        // Interpolate between these colors based on priority
+        val priority = t.priority.coerceIn(1, 5)
+        val ratio = (priority - 1) / 4.0 // 0.0 for priority 1, 1.0 for priority 5
+        
+        val rRed = 255; val gRed = 97; val bRed = 97
+        val rGreen = 82; val gGreen = 196; val bGreen = 26
+        
+        val r = (rRed + (rGreen - rRed) * ratio).toInt()
+        val g = (gRed + (gGreen - gRed) * ratio).toInt()
+        val b = (bRed + (bGreen - bRed) * ratio).toInt()
+        val iconColor = (0xFF shl 24) or (r shl 16) or (g shl 8) or b
+        
+        rv.setInt(R.id.iv_check, "setColorFilter", iconColor)
+        
         val pText = when {
             t.priority >= 3 -> "!!!"
             t.priority == 2 -> "!!"
@@ -47,11 +76,7 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         rv.setTextViewText(R.id.tv_task_priority, pText)
         rv.setTextColor(
             R.id.tv_task_priority,
-            when {
-                t.priority >= 3 -> 0xFFF87171.toInt()
-                t.priority == 2 -> 0xFFF5C542.toInt()
-                else -> 0xFF34D399.toInt()
-            }
+            0xFFF5C542.toInt() // Yellow text for priority indicator
         )
         val fill = Intent().apply { putExtra("task_id", t.id) }
         rv.setOnClickFillInIntent(R.id.item_task_root, fill)

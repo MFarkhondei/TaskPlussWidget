@@ -17,7 +17,7 @@ import com.taskpluss.widget.model.WidgetCache
  */
 object ApiClient {
 
-    private const val TIMEOUT = 20000
+    private const val TIMEOUT = 60000  // افزایش تایم‌اوت به ۱ دقیقه (۶۰۰۰۰ میلی‌ثانیه)
 
     const val DEFAULT_WEBAPP_URL =
         "https://script.google.com/macros/s/AKfycbx0W1jYG8-N4le384oJFYIwXD1OAgYb5lc6E6vOe9CDO3ov7fmkNRXJNdOvw_GSzGalkw/exec"
@@ -134,86 +134,102 @@ object ApiClient {
                 "action" to "getGroups",
                 "token" to token
             ))
-            val tasksData = JSONObject().apply {
-                put("page", 0)
-                put("limit", 80)
+            
+            // دریافت همه تسک‌ها با pagination - شروع با صفحه 0 و limit بالا
+            val allTasks = mutableListOf<TaskItem>()
+            var page = 0
+            val limit = 500
+            var hasMore = true
+            
+            while (hasMore) {
+                val tasksData = JSONObject().apply {
+                    put("page", page)
+                    put("limit", limit)
+                }
+                val tasksUrl = buildUrl(baseUrl, mapOf(
+                    "action" to "getTasks",
+                    "token" to token,
+                    "data" to tasksData.toString()
+                ))
+
+                // درخواست گروه‌ها فقط در دور اول
+                var groupsText = ""
+                if (page == 0) {
+                    try { 
+                        groupsText = getText(groupsUrl) 
+                    } catch (_: Exception) { }
+                }
+
+                val tasksText = getText(tasksUrl)
+                val tasksObj = parseJson(tasksText)
+                
+                if (tasksObj.has("message") && !tasksObj.optBoolean("success", true)) {
+                    return Result(false, tasksObj.optString("message", "خطا در تسک‌ها"))
+                }
+
+                val arr = tasksObj.optJSONArray("tasks") ?: JSONArray()
+                if (arr.length() == 0) {
+                    // هیچ تسکی در این صفحه نیست، پس پایان داده‌ها
+                    hasMore = false
+                } else {
+                    // افزودن تسک‌های دریافتی به لیست
+                    for (i in 0 until arr.length()) {
+                        val o = arr.getJSONObject(i)
+                        allTasks.add(
+                            TaskItem(
+                                id = o.optString("id"),
+                                title = o.optString("title"),
+                                status = o.optString("status", "todo"),
+                                priority = o.optInt("priority", 0),
+                                date = o.optString("date"),
+                                created = o.optString("created"),
+                                group = o.optString("group", "none"),
+                                notes = o.optString("notes")
+                            )
+                        )
+                    }
+                    // بررسی hasMore از سرور
+                    val serverHasMore = tasksObj.optBoolean("hasMore", false)
+                    // اگر تعداد تسک‌های دریافتی کمتر از limit باشد یا سرور بگوید بیشتر نیست، پایان
+                    if (arr.length() < limit || !serverHasMore) {
+                        hasMore = false
+                    } else {
+                        // صفحه بعدی را بگیر
+                        page++
+                    }
+                }
             }
-            val tasksUrl = buildUrl(baseUrl, mapOf(
-                "action" to "getTasks",
-                "token" to token,
-                "data" to tasksData.toString()
-            ))
 
-            // هر دو درخواست هم‌زمان اجرا می‌شن به‌جای پشت‌سرهم — تقریباً نصف کردن زمان همگام‌سازی کامل
-            var groupsText = ""
-            var tasksText = ""
-            var groupsError: Exception? = null
-            var tasksError: Exception? = null
-
-            val groupsThread = Thread {
-                try { groupsText = getText(groupsUrl) } catch (e: Exception) { groupsError = e }
-            }
-            val tasksThread = Thread {
-                try { tasksText = getText(tasksUrl) } catch (e: Exception) { tasksError = e }
-            }
-            groupsThread.start()
-            tasksThread.start()
-            groupsThread.join()
-            tasksThread.join()
-
-            groupsError?.let { throw it }
-            tasksError?.let { throw it }
-
-            val groupsObj = parseJson(groupsText)
-            if (groupsObj.has("message") && !groupsObj.optBoolean("success", true)) {
-                return Result(false, groupsObj.optString("message", "خطا در گروه‌ها"))
-            }
-
+            // پردازش گروه‌ها از پاسخ اول
             val groupsMap = mutableMapOf<String, GroupItem>()
-            val gObj = groupsObj.optJSONObject("groups")
-            if (gObj != null) {
-                val keys = gObj.keys()
-                while (keys.hasNext()) {
-                    val k = keys.next()
-                    val g = gObj.getJSONObject(k)
-                    groupsMap[k] = GroupItem(
-                        key = k,
-                        name = g.optString("name", k),
-                        color = g.optString("color", "#5B6B7A")
-                    )
+            if (groupsText.isNotBlank()) {
+                val groupsObj = parseJson(groupsText)
+                if (groupsObj.has("message") && !groupsObj.optBoolean("success", true)) {
+                    // خطا در گروه‌ها حیاتی نیست، ادامه می‌دهیم
+                } else {
+                    val gObj = groupsObj.optJSONObject("groups")
+                    if (gObj != null) {
+                        val keys = gObj.keys()
+                        while (keys.hasNext()) {
+                            val k = keys.next()
+                            val g = gObj.getJSONObject(k)
+                            groupsMap[k] = GroupItem(
+                                key = k,
+                                name = g.optString("name", k),
+                                color = g.optString("color", "#5B6B7A")
+                            )
+                        }
+                    }
                 }
             }
             if (!groupsMap.containsKey("none")) {
                 groupsMap["none"] = GroupItem("none", "بدون گروه")
             }
 
-            val tasksObj = parseJson(tasksText)
-            if (tasksObj.has("message") && !tasksObj.optBoolean("success", true)) {
-                return Result(false, tasksObj.optString("message", "خطا در تسک‌ها"))
-            }
-
-            val tasks = mutableListOf<TaskItem>()
-            val arr = tasksObj.optJSONArray("tasks") ?: JSONArray()
-            for (i in 0 until arr.length()) {
-                val o = arr.getJSONObject(i)
-                tasks.add(
-                    TaskItem(
-                        id = o.optString("id"),
-                        title = o.optString("title"),
-                        status = o.optString("status", "todo"),
-                        priority = o.optInt("priority", 0),
-                        date = o.optString("date"),
-                        created = o.optString("created"),
-                        group = o.optString("group", "none"),
-                        notes = o.optString("notes")
-                    )
-                )
-            }
-
             Result(
                 true, "موفق",
                 cache = WidgetCache(
-                    tasks = tasks,
+                    tasks = allTasks,
                     groups = groupsMap,
                     selectedGroupKey = selectedGroup,
                     updatedAt = nowTime(),

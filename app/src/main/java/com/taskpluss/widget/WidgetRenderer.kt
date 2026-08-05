@@ -49,6 +49,9 @@ object WidgetRenderer {
         for (id in ids) {
             val rv = buildRemoteViews(context, cache, id)
             mgr.updateAppWidget(id, rv)
+        }
+        // Notify after all widgets are updated to ensure ListView refreshes properly
+        for (id in ids) {
             mgr.notifyAppWidgetViewDataChanged(id, R.id.list_tasks)
         }
     }
@@ -153,7 +156,7 @@ object WidgetRenderer {
         rv.setPendingIntentTemplate(R.id.list_tasks, templatePi)
 
         val activeCount = cache.tasks.count { t ->
-            t.status != "done" && (cache.selectedGroupKey == "all" || t.group == cache.selectedGroupKey)
+            (cache.selectedGroupKey == "all" || t.group == cache.selectedGroupKey) && t.status != "done"
         }
         if (activeCount == 0) {
             rv.setViewVisibility(R.id.tv_empty, View.VISIBLE)
