@@ -1,75 +1,51 @@
+```
+# Compiled and build artifacts
 *.class
-*.jar
-*.war
-*.ear
-*.apk
-*.aar
+*.o
+*.obj
+*.out
+*.dll
+*.so
+*.a
+*.pyc
+__pycache__/
 
-# Gradle
-.gradle/
-build/
-
-# IntelliJ IDEA
-.idea/
-
-# Eclipse
-.project
-.classpath
-.settings/
-
-# Temporary files
-*.tmp
-*.temp
-*.log
-
-# Environment
+# Dependencies
+node_modules/
+venv/
+.venv/
 .env
 .env.local
-.env.*
+*.env.*
 
-# Coverage reports
-coverage/
-*.cov
-*.lcov
-
-# Package manager
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-venv/
-env/
-ENV/
-.venv/
-.python-version
-
-# Generated files
-gen/
-out/
+# Build directories
+dist/
+build/
 target/
+.gradle/
 
-# OS generated files
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# System files
 .DS_Store
 Thumbs.db
-desktop.ini
 
-# Local configuration
-local.properties
-gradle.properties
-*.iml
-*.ipr
-*.iws
+# Logs
+*.log
 
-# Build outputs
-bin/
-obj/
-lib/
-tmp/
-temp/
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Python specific
+.mypy_cache/
+.pytest_cache/
+*.pyc
+__pycache__/
+```

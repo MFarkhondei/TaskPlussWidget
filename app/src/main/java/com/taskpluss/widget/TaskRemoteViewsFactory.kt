@@ -21,11 +21,18 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         val active = list.filter { it.status != "done" }
         tasks = if (key == "all") {
             // For "all" view: sort by created date descending, then by id
-            active.sortedWith(compareByDescending<TaskItem> { it.created }.thenByDescending { it.id })
+            // Ensure stable sorting to prevent lazy loading issues
+            active.sortedWith(
+                compareByDescending<TaskItem> { it.created }
+                    .thenByDescending { it.id }
+                    .thenByDescending { it.priority }
+            )
         } else {
             // For specific groups: sort by priority descending, then by created date
             active.sortedWith(
-                compareByDescending<TaskItem> { it.priority }.thenByDescending { it.created }
+                compareByDescending<TaskItem> { it.priority }
+                    .thenByDescending { it.created }
+                    .thenByDescending { it.id }
             )
         }
     }

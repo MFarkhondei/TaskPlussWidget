@@ -169,8 +169,10 @@ object ApiClient {
 
                 val arr = tasksObj.optJSONArray("tasks") ?: JSONArray()
                 if (arr.length() == 0) {
+                    // هیچ تسکی در این صفحه نیست، پس پایان داده‌ها
                     hasMore = false
                 } else {
+                    // افزودن تسک‌های دریافتی به لیست
                     for (i in 0 until arr.length()) {
                         val o = arr.getJSONObject(i)
                         allTasks.add(
@@ -186,10 +188,13 @@ object ApiClient {
                             )
                         )
                     }
-                    // اگر تعداد تسک‌های دریافتی کمتر از limit باشد، یعنی به آخر رسیدیم
-                    if (arr.length() < limit) {
+                    // بررسی hasMore از سرور
+                    val serverHasMore = tasksObj.optBoolean("hasMore", false)
+                    // اگر تعداد تسک‌های دریافتی کمتر از limit باشد یا سرور بگوید بیشتر نیست، پایان
+                    if (arr.length() < limit || !serverHasMore) {
                         hasMore = false
                     } else {
+                        // صفحه بعدی را بگیر
                         page++
                     }
                 }
