@@ -6,9 +6,9 @@
     android:orientation="horizontal"
     android:background="@drawable/bg_task_row"
     android:gravity="center_vertical"
-    android:padding="10dp"
+    android:padding="8dp"
     android:layoutDirection="rtl"
-    android:layout_marginBottom="4dp">
+    android:layout_marginBottom="3dp">
 
     <ImageView
         android:id="@+id/iv_check"
@@ -17,30 +17,22 @@
         android:src="@drawable/ic_check_empty"
         android:contentDescription="وضعیت" />
 
-    <TextView
-        android:id="@+id/tv_task_title"
+    <ImageView
+        android:id="@+id/iv_task_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text=""
-        android:textSize="16sp"
-        android:textColor="#F8FAFC"
-        android:fontFamily="@font/vazirmatn_bold"
-        android:maxLines="3"
-        android:ellipsize="end"
-        android:paddingStart="10dp"
-        android:paddingEnd="6dp" />
+        android:adjustViewBounds="true"
+        android:scaleType="fitEnd"
+        android:paddingStart="8dp"
+        android:paddingEnd="4dp"
+        android:contentDescription="عنوان" />
 
-    <TextView
-        android:id="@+id/tv_task_priority"
-        android:layout_width="wrap_content"
+    <ImageView
+        android:id="@+id/iv_task_priority"
+        android:layout_width="28dp"
         android:layout_height="wrap_content"
-        android:text=""
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:textColor="#F5C542"
-        android:fontFamily="@font/vazirmatn_bold"
-        android:minWidth="22dp"
-        android:gravity="center"
-        android:paddingStart="4dp" />
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        android:contentDescription="اولویت" />
 </LinearLayout>
