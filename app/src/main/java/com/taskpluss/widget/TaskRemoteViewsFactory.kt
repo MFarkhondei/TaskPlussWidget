@@ -15,12 +15,18 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
     override fun onDataSetChanged() {
         val cache = Prefs.loadCache(context)
         val key = cache.selectedGroupKey
-        val list = if (key == "all") cache.tasks else cache.tasks.filter { it.group == key }
-        val active = list.filter { it.status != "done" }
-        tasks = if (key == "all") {
-            active.sortedWith(compareByDescending<TaskItem> { it.created }.thenByDescending { it.id })
-        } else {
-            active.sortedWith(
+        val active = cache.tasks.filter { it.status != "done" }
+
+        tasks = when (key) {
+            "all" -> active.sortedWith(
+                compareByDescending<TaskItem> { it.created }.thenByDescending { it.id }
+            )
+            "by_priority" -> active.sortedWith(
+                compareBy<TaskItem> {
+                    if (it.priority in 1..5) it.priority else 99
+                }.thenByDescending { it.created }
+            )
+            else -> active.filter { it.group == key }.sortedWith(
                 compareByDescending<TaskItem> { it.priority }.thenByDescending { it.created }
             )
         }
@@ -39,13 +45,22 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         rv.setImageViewResource(R.id.iv_check, R.drawable.ic_check_empty)
         rv.setTextColor(R.id.tv_task_title, 0xFFF8FAFC.toInt())
 
-        // فلش اولویت بدون P — ۱ قرمز … ۵ سبز
-        val arrows = if (t.priority in 1..5) "▲".repeat(t.priority) else ""
-        rv.setTextViewText(R.id.tv_task_priority, arrows)
+        val label = if (t.priority in 1..5) t.priority.toString() else ""
+        rv.setTextViewText(R.id.tv_task_priority, label)
         rv.setTextColor(R.id.tv_task_priority, priorityColor(t.priority))
 
-        val fill = Intent().apply { putExtra("task_id", t.id) }
-        rv.setOnClickFillInIntent(R.id.iv_check, fill)
+        val toggleFill = Intent().apply {
+            putExtra("task_id", t.id)
+            putExtra("action", "toggle")
+        }
+        rv.setOnClickFillInIntent(R.id.iv_check, toggleFill)
+
+        val editFill = Intent().apply {
+            putExtra("task_id", t.id)
+            putExtra("action", "edit")
+        }
+        rv.setOnClickFillInIntent(R.id.tv_task_title, editFill)
+        rv.setOnClickFillInIntent(R.id.item_task_root, editFill)
 
         return rv
     }
