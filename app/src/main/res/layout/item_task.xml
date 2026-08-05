@@ -6,14 +6,14 @@
     android:orientation="horizontal"
     android:background="@drawable/bg_task_row"
     android:gravity="center_vertical"
-    android:padding="8dp"
+    android:padding="6dp"
     android:layoutDirection="rtl"
-    android:layout_marginBottom="3dp">
+    android:layout_marginBottom="2dp">
 
     <ImageView
         android:id="@+id/iv_check"
-        android:layout_width="26dp"
-        android:layout_height="26dp"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
         android:src="@drawable/ic_check_empty"
         android:contentDescription="وضعیت" />
 
@@ -23,14 +23,14 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:adjustViewBounds="true"
-        android:scaleType="fitEnd"
-        android:paddingStart="8dp"
+        android:scaleType="fitStart"
+        android:paddingStart="6dp"
         android:paddingEnd="4dp"
         android:contentDescription="عنوان" />
 
     <ImageView
         android:id="@+id/iv_task_priority"
-        android:layout_width="28dp"
+        android:layout_width="22dp"
         android:layout_height="wrap_content"
         android:adjustViewBounds="true"
         android:scaleType="fitCenter"

@@ -7,11 +7,12 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import android.text.Layout
 import android.text.StaticLayout
+import android.text.TextDirectionHeuristics
 import android.text.TextPaint
 import android.widget.RemoteViews
 import androidx.core.content.res.ResourcesCompat
 
-/** رسم متن با فونت وزیر برای RemoteViews */
+/** رسم متن با فونت وزیر برای RemoteViews — راست‌چین و فشرده */
 object WidgetText {
 
     private fun typeface(context: Context, bold: Boolean): Typeface {
@@ -28,14 +29,14 @@ object WidgetText {
         rv: RemoteViews,
         viewId: Int,
         text: String,
-        textSizeSp: Float = 15f,
+        textSizeSp: Float = 12.5f,
         color: Int = 0xFFF8FAFC.toInt(),
-        maxWidthDp: Int = 220,
+        maxWidthDp: Int = 240,
         maxLines: Int = 3
     ) {
         val bmp = render(
             context, text, textSizeSp, color, bold = true,
-            maxWidthDp = maxWidthDp, maxLines = maxLines, alignEnd = true
+            maxWidthDp = maxWidthDp, maxLines = maxLines
         )
         rv.setImageViewBitmap(viewId, bmp)
     }
@@ -52,8 +53,8 @@ object WidgetText {
             return
         }
         val bmp = render(
-            context, text, 14f, color, bold = true,
-            maxWidthDp = 28, maxLines = 1, alignEnd = true
+            context, text, 12f, color, bold = true,
+            maxWidthDp = 24, maxLines = 1
         )
         rv.setImageViewBitmap(viewId, bmp)
     }
@@ -68,27 +69,27 @@ object WidgetText {
         color: Int,
         bold: Boolean,
         maxWidthDp: Int,
-        maxLines: Int,
-        alignEnd: Boolean
+        maxLines: Int
     ): Bitmap {
         val density = context.resources.displayMetrics.density
-        val maxWidthPx = (maxWidthDp * density).toInt().coerceAtLeast(40)
+        val maxWidthPx = (maxWidthDp * density).toInt().coerceAtLeast(32)
         val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = typeface(context, bold)
             textSize = textSizeSp * density
             this.color = color
             isSubpixelText = true
         }
-        val alignment = if (alignEnd) Layout.Alignment.ALIGN_OPPOSITE else Layout.Alignment.ALIGN_NORMAL
+        // RTL: تراز راست برای فارسی
         val layout = StaticLayout.Builder
             .obtain(text, 0, text.length, paint, maxWidthPx)
-            .setAlignment(alignment)
+            .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+            .setTextDirection(TextDirectionHeuristics.RTL)
             .setMaxLines(maxLines)
             .setEllipsize(android.text.TextUtils.TruncateAt.END)
             .setIncludePad(false)
-            .setLineSpacing(0f, 1.05f)
+            .setLineSpacing(0f, 1.0f)
             .build()
-        val h = layout.height.coerceAtLeast((textSizeSp * density).toInt() + 4)
+        val h = layout.height.coerceAtLeast((textSizeSp * density).toInt() + 2)
         val bmp = Bitmap.createBitmap(maxWidthPx, h, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
         layout.draw(canvas)
