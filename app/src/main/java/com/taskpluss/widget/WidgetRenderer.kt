@@ -153,7 +153,7 @@ object WidgetRenderer {
         rv.setPendingIntentTemplate(R.id.list_tasks, templatePi)
 
         val activeCount = cache.tasks.count { t ->
-            t.status != "done" && (cache.selectedGroupKey == "all" || t.group == cache.selectedGroupKey)
+            (cache.selectedGroupKey == "all" || t.group == cache.selectedGroupKey)
         }
         if (activeCount == 0) {
             rv.setViewVisibility(R.id.tv_empty, View.VISIBLE)

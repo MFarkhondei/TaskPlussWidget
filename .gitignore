@@ -1,21 +1,21 @@
-```kotlin
 # Compiled and build artifacts
 *.class
-*.jar
-*.war
-*.aar
-build/
-.gradle/
-target/
+*.o
+*.obj
+*.so
+*.a
+*.dll
+*.exe
+*.out
 
 # Dependencies
-node_modules/
 venv/
 .venv/
 __pycache__/
-*.egg-info/
-dist/
-out/
+.mypy_cache/
+.pytest_cache/
+target/
+.gradle/
 
 # Logs and temp files
 *.log
@@ -26,16 +26,13 @@ out/
 # Environment
 .env
 .env.local
-.env.*
+*.env.*
 
 # Editors
 .vscode/
 .idea/
-*.iml
-*.ipr
-*.iws
 
-# OS
+# System files
 .DS_Store
 Thumbs.db
 
@@ -44,41 +41,26 @@ coverage/
 htmlcov/
 .coverage
 
-# Python specific
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.so
-*.egg
-
-# Java/Kotlin specific
-*.class
-*.jar
-*.war
-*.ear
-*.aar
-.DS_Store
-!src/**/*
-
-# Gradle
-.gradle/
-build/
-
-# Android
-*.apk
-*.ap_
-local.properties
-```
-
-Wait, let me reconsider this. The file changes only show source code modifications (.kt and .gs files), not build artifacts or dependency directories. Let me check again.
-
-The changes are only:
-- 'app/src/main/java/com/taskpluss/widget/ApiClient.kt' (source file)
-- 'code.gs' (source file)
-
-Since these are only source code files and there are no build artifacts, dependencies, or temporary files in the changes, the output should be empty.
-
-```kotlin
-
-```
+# Compressed files
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
