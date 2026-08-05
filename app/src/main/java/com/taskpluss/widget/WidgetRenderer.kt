@@ -49,6 +49,9 @@ object WidgetRenderer {
         for (id in ids) {
             val rv = buildRemoteViews(context, cache, id)
             mgr.updateAppWidget(id, rv)
+        }
+        // Notify after all widgets are updated to ensure ListView refreshes properly
+        for (id in ids) {
             mgr.notifyAppWidgetViewDataChanged(id, R.id.list_tasks)
         }
     }
