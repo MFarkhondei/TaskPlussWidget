@@ -17,7 +17,7 @@ import com.taskpluss.widget.model.WidgetCache
  */
 object ApiClient {
 
-    private const val TIMEOUT = 20000
+    private const val TIMEOUT = 60000  // افزایش تایم‌اوت به ۱ دقیقه (۶۰۰۰۰ میلی‌ثانیه)
 
     const val DEFAULT_WEBAPP_URL =
         "https://script.google.com/macros/s/AKfycbx0W1jYG8-N4le384oJFYIwXD1OAgYb5lc6E6vOe9CDO3ov7fmkNRXJNdOvw_GSzGalkw/exec"
