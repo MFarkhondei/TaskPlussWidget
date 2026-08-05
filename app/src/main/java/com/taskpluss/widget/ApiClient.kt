@@ -11,9 +11,13 @@ import com.taskpluss.widget.model.GroupItem
 import com.taskpluss.widget.model.TaskItem
 import com.taskpluss.widget.model.WidgetCache
 
+/**
+ * کلاینت API تسک‌پلاس — مقاوم در برابر قطع شبکه و redirect گوگل
+ */
 object ApiClient {
 
     private const val TIMEOUT = 60000
+    private const val PAGE_SIZE = 40
 
     const val DEFAULT_WEBAPP_URL =
         "https://script.google.com/macros/s/AKfycbx0W1jYG8-N4le384oJFYIwXD1OAgYb5lc6E6vOe9CDO3ov7fmkNRXJNdOvw_GSzGalkw/exec"
@@ -50,53 +54,90 @@ object ApiClient {
     }
 
     private fun parseJson(text: String): JSONObject {
-        val trimmed = text.trim()
-        if (trimmed.isEmpty()) throw Exception("پاسخ خالی از سرور")
-        if (isHtml(trimmed)) {
-            throw Exception(
-                "سرور HTML برگرداند نه JSON.\n" +
-                "آدرس باید کامل و به /exec ختم شود و Deploy روی Anyone باشد."
-            )
+        var candidate = text.trim()
+        if (candidate.isEmpty()) throw Exception("پاسخ خالی از سرور")
+        if (isHtml(candidate)) {
+            throw Exception("پاسخ HTML به‌جای JSON — آدرس /exec یا دسترسی Anyone را چک کنید")
         }
-        var candidate = trimmed
-        // پاسخ دوبار stringify شده از Apps Script
-        repeat(2) {
-            if (candidate.startsWith("\"") && candidate.endsWith("\"")) {
+        repeat(3) {
+            if (candidate.length >= 2 && candidate.startsWith("\"") && candidate.endsWith("\"")) {
                 try {
-                    candidate = JSONArray("[$candidate]").getString(0)
-                } catch (_: Exception) { return@repeat }
-            }
+                    candidate = JSONArray("[$candidate]").getString(0).trim()
+                } catch (_: Exception) {
+                    return@repeat
+                }
+            } else return@repeat
         }
-        return JSONObject(candidate)
+        return try {
+            JSONObject(candidate)
+        } catch (e: Exception) {
+            throw Exception("JSON نامعتبر: ${candidate.take(80)}")
+        }
     }
 
     private fun getText(fullUrl: String): String {
+        return try {
+            getTextOnce(fullUrl, followRedirects = true)
+        } catch (_: Exception) {
+            getTextOnce(fullUrl, followRedirects = false)
+        }
+    }
+
+    private fun getTextOnce(fullUrl: String, followRedirects: Boolean): String {
+        if (followRedirects) {
+            val conn = (URL(fullUrl).openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = TIMEOUT
+                readTimeout = TIMEOUT
+                instanceFollowRedirects = true
+                setRequestProperty("Accept", "application/json, text/plain, */*")
+                setRequestProperty("User-Agent", "TaskPlussWidget/1.3 (Android)")
+            }
+            try {
+                val code = conn.responseCode
+                val stream = if (code in 200..299) conn.inputStream else (conn.errorStream ?: conn.inputStream)
+                val body = BufferedReader(InputStreamReader(stream, Charsets.UTF_8)).use { it.readText() }
+                if (code !in 200..299) throw Exception("HTTP $code")
+                if (body.isBlank()) throw Exception("پاسخ خالی")
+                return body
+            } finally {
+                conn.disconnect()
+            }
+        }
+
         var url = fullUrl
         var redirects = 0
-        while (redirects < 8) {
+        while (redirects < 10) {
             val conn = (URL(url).openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
                 connectTimeout = TIMEOUT
                 readTimeout = TIMEOUT
                 instanceFollowRedirects = false
                 setRequestProperty("Accept", "application/json, text/plain, */*")
-                setRequestProperty("User-Agent", "TaskPlussWidget/1.2")
+                setRequestProperty("User-Agent", "TaskPlussWidget/1.3 (Android)")
             }
-            val code = conn.responseCode
-            if (code in 300..399) {
-                val loc = conn.getHeaderField("Location") ?: break
-                url = if (loc.startsWith("http")) loc else URL(URL(url), loc).toString()
-                redirects++
+            try {
+                val code = conn.responseCode
+                if (code in 300..399) {
+                    val loc = conn.getHeaderField("Location")
+                        ?: throw Exception("Redirect بدون Location")
+                    url = if (loc.startsWith("http")) loc else URL(URL(url), loc).toString()
+                    redirects++
+                    continue
+                }
+                val stream = if (code in 200..299) conn.inputStream else (conn.errorStream ?: conn.inputStream)
+                val body = BufferedReader(InputStreamReader(stream, Charsets.UTF_8)).use { it.readText() }
+                if (code !in 200..299) throw Exception("HTTP $code")
+                if (body.isBlank()) throw Exception("پاسخ خالی")
+                return body
+            } finally {
                 conn.disconnect()
-                continue
             }
-            val stream = if (code in 200..299) conn.inputStream else (conn.errorStream ?: conn.inputStream)
-            return BufferedReader(InputStreamReader(stream, Charsets.UTF_8)).use { it.readText() }
         }
-        throw Exception("Redirect زیاد یا خطای شبکه")
+        throw Exception("Redirect بیش از حد")
     }
 
-    private fun getTextWithRetry(fullUrl: String, retries: Int = 3): String {
+    private fun getTextWithRetry(fullUrl: String, retries: Int = 4): String {
         var last: Exception? = null
         for (attempt in 1..retries) {
             try {
@@ -104,7 +145,7 @@ object ApiClient {
             } catch (e: Exception) {
                 last = e
                 if (attempt < retries) {
-                    try { Thread.sleep(500L * attempt) } catch (_: InterruptedException) { }
+                    try { Thread.sleep(700L * attempt) } catch (_: InterruptedException) { }
                 }
             }
         }
@@ -114,9 +155,7 @@ object ApiClient {
     private fun buildUrl(base: String, params: Map<String, String>): String {
         val b = normalizeUrl(base)
         val q = params.entries.joinToString("&") { (k, v) ->
-            val ek = URLEncoder.encode(k, "UTF-8")
-            val ev = URLEncoder.encode(v, "UTF-8")
-            "$ek=$ev"
+            "${URLEncoder.encode(k, "UTF-8")}=${URLEncoder.encode(v, "UTF-8")}"
         }
         return "$b?$q"
     }
@@ -143,117 +182,91 @@ object ApiClient {
     }
 
     fun fetchAll(baseUrl: String, token: String, selectedGroup: String): Result {
-        return try {
-            val groupsUrl = buildUrl(baseUrl, mapOf(
-                "action" to "getGroups",
-                "token" to token
-            ))
+        if (baseUrl.isBlank()) return Result(false, "آدرس Web App خالی است")
+        if (token.isBlank()) return Result(false, "توکن خالی است — دوباره وارد شوید")
 
-            var groupsText = ""
-            var groupsError: Exception? = null
-            val groupsThread = Thread {
-                try {
-                    groupsText = getTextWithRetry(groupsUrl, retries = 3)
-                } catch (e: Exception) {
-                    groupsError = e
+        var groupsMap = mutableMapOf<String, GroupItem>()
+        var groupsError: String? = null
+        var tasksError: String? = null
+        var tasks = mutableListOf<TaskItem>()
+
+        val groupsThread = Thread {
+            try {
+                val groupsUrl = buildUrl(baseUrl, mapOf(
+                    "action" to "getGroups",
+                    "token" to token
+                ))
+                val groupsObj = parseJson(getTextWithRetry(groupsUrl, retries = 4))
+                if (groupsObj.has("message") && !groupsObj.optBoolean("success", true)) {
+                    groupsError = groupsObj.optString("message", "خطا در گروه‌ها")
+                    return@Thread
                 }
-            }
-            groupsThread.start()
-
-            val tasks = fetchAllTasks(baseUrl, token)
-
-            groupsThread.join()
-            groupsError?.let { throw it }
-
-            val groupsObj = parseJson(groupsText)
-            if (groupsObj.has("message") && !groupsObj.optBoolean("success", true)) {
-                return Result(false, groupsObj.optString("message", "خطا در گروه‌ها"))
-            }
-
-            val groupsMap = mutableMapOf<String, GroupItem>()
-            val gObj = groupsObj.optJSONObject("groups")
-            if (gObj != null) {
-                val keys = gObj.keys()
-                while (keys.hasNext()) {
-                    val k = keys.next()
-                    val g = gObj.getJSONObject(k)
-                    groupsMap[k] = GroupItem(
-                        key = k,
-                        name = g.optString("name", k),
-                        color = g.optString("color", "#5B6B7A")
-                    )
+                val gObj = groupsObj.optJSONObject("groups")
+                if (gObj != null) {
+                    val keys = gObj.keys()
+                    while (keys.hasNext()) {
+                        val k = keys.next()
+                        val g = gObj.getJSONObject(k)
+                        groupsMap[k] = GroupItem(
+                            key = k,
+                            name = g.optString("name", k),
+                            color = g.optString("color", "#5B6B7A")
+                        )
+                    }
                 }
+            } catch (e: Exception) {
+                groupsError = e.message ?: "خطا در گروه‌ها"
             }
-            if (!groupsMap.containsKey("none")) {
-                groupsMap["none"] = GroupItem("none", "بدون گروه")
-            }
-
-            Result(
-                true, "موفق (${tasks.size} تسک)",
-                cache = WidgetCache(
-                    tasks = tasks,
-                    groups = groupsMap,
-                    selectedGroupKey = selectedGroup,
-                    updatedAt = nowTime(),
-                    offline = false
-                )
-            )
-        } catch (e: Exception) {
-            Result(false, e.message ?: "خطای شبکه")
         }
+
+        val tasksThread = Thread {
+            try {
+                tasks = fetchAllTasks(baseUrl, token)
+            } catch (e: Exception) {
+                tasksError = e.message ?: "خطا در تسک‌ها"
+            }
+        }
+
+        groupsThread.start()
+        tasksThread.start()
+        groupsThread.join()
+        tasksThread.join()
+
+        if (!groupsMap.containsKey("none")) {
+            groupsMap["none"] = GroupItem("none", "بدون گروه")
+        }
+
+        if (tasksError != null && tasks.isEmpty()) {
+            return Result(false, tasksError ?: groupsError ?: "خطای شبکه")
+        }
+
+        val warn = listOfNotNull(groupsError, tasksError).joinToString(" | ")
+        return Result(
+            true,
+            if (warn.isBlank()) "موفق (${tasks.size})" else "ناقص: $warn",
+            cache = WidgetCache(
+                tasks = tasks,
+                groups = groupsMap,
+                selectedGroupKey = selectedGroup,
+                updatedAt = nowTime(),
+                offline = false
+            )
+        )
     }
 
-    /** یک‌جا با limit بزرگ، سپس صفحه‌بندی + retry */
     private fun fetchAllTasks(baseUrl: String, token: String): MutableList<TaskItem> {
         val tasks = mutableListOf<TaskItem>()
         val seenIds = mutableSetOf<String>()
-
-        try {
-            val bulk = requestTasksPage(baseUrl, token, page = 0, limit = 10000)
-            appendTasks(tasks, seenIds, bulk.tasks)
-            if (!bulk.hasMore) return tasks
-            var page = 1
-            var guard = 0
-            while (guard < 50) {
-                guard++
-                val next = requestTasksPage(baseUrl, token, page = page, limit = 500)
-                appendTasks(tasks, seenIds, next.tasks)
-                if (!next.hasMore || next.tasks.isEmpty()) break
-                page++
-            }
-            return tasks
-        } catch (_: Exception) {
-            // fallback
-        }
-
         var page = 0
-        var emptyStreak = 0
-        while (page < 100) {
-            try {
-                val resp = requestTasksPage(baseUrl, token, page = page, limit = 100)
-                val before = tasks.size
-                appendTasks(tasks, seenIds, resp.tasks)
-                if (resp.tasks.isEmpty()) {
-                    emptyStreak++
-                    if (emptyStreak >= 2) break
-                } else {
-                    emptyStreak = 0
-                }
-                if (!resp.hasMore) break
-                if (tasks.size == before && resp.tasks.isNotEmpty()) break
-                page++
-            } catch (e: Exception) {
-                try {
-                    Thread.sleep(800)
-                    val resp = requestTasksPage(baseUrl, token, page = page, limit = 100)
-                    appendTasks(tasks, seenIds, resp.tasks)
-                    if (!resp.hasMore || resp.tasks.isEmpty()) break
-                    page++
-                } catch (e2: Exception) {
-                    if (page == 0 && tasks.isEmpty()) throw e2
-                    break
-                }
-            }
+        var totalHint = -1
+
+        while (page < 200) {
+            val resp = requestTasksPage(baseUrl, token, page = page, limit = PAGE_SIZE)
+            if (totalHint < 0 && resp.total > 0) totalHint = resp.total
+            appendTasks(tasks, seenIds, resp.tasks)
+            if (!resp.hasMore || resp.tasks.isEmpty()) break
+            if (totalHint > 0 && tasks.size >= totalHint) break
+            page++
         }
         return tasks
     }
@@ -279,15 +292,20 @@ object ApiClient {
             "token" to token,
             "data" to tasksData.toString()
         ))
-        val text = getTextWithRetry(url, retries = 3)
+        val text = getTextWithRetry(url, retries = 4)
         val obj = parseJson(text)
-        if (obj.has("message") && !obj.optBoolean("success", true)) {
-            throw Exception(obj.optString("message", "خطا در تسک‌ها"))
+
+        if (!obj.optBoolean("success", true)) {
+            throw Exception(obj.optString("message", "خطا در دریافت تسک‌ها"))
         }
+        if (obj.has("message") && !obj.has("tasks") && !obj.optBoolean("success", false)) {
+            throw Exception(obj.optString("message"))
+        }
+
         val arr = obj.optJSONArray("tasks") ?: JSONArray()
-        val list = mutableListOf<TaskItem>()
+        val list = ArrayList<TaskItem>(arr.length())
         for (i in 0 until arr.length()) {
-            val o = arr.getJSONObject(i)
+            val o = arr.optJSONObject(i) ?: continue
             list.add(
                 TaskItem(
                     id = o.optString("id"),
@@ -301,8 +319,12 @@ object ApiClient {
                 )
             )
         }
-        val hasMore = obj.optBoolean("hasMore", list.size >= limit)
-        val total = obj.optInt("total", list.size)
+        val total = obj.optInt("total", -1)
+        val hasMore = when {
+            obj.has("hasMore") -> obj.optBoolean("hasMore")
+            total >= 0 -> (page * limit + list.size) < total
+            else -> list.size >= limit
+        }
         return TasksPage(list, hasMore, total)
     }
 
@@ -343,17 +365,10 @@ object ApiClient {
             ))
             val obj = parseJson(getTextWithRetry(url))
             if (obj.optBoolean("success", false)) {
-                val newTask = TaskItem(
-                    id = id,
-                    title = cleanTitle,
-                    status = "todo",
-                    priority = 0,
-                    date = "",
-                    created = created,
-                    group = "none",
-                    notes = ""
+                Result(
+                    true, "تسک اضافه شد ($created)",
+                    task = TaskItem(id, cleanTitle, "todo", 0, "", created, "none", "")
                 )
-                Result(true, "تسک اضافه شد ($created)", task = newTask)
             } else {
                 Result(false, obj.optString("message", "خطا در افزودن"))
             }
@@ -386,11 +401,8 @@ object ApiClient {
                 "data" to taskJson.toString()
             ))
             val obj = parseJson(getTextWithRetry(url))
-            if (obj.optBoolean("success", false)) {
-                Result(true, "وضعیت به‌روز شد")
-            } else {
-                Result(false, obj.optString("message", "خطا"))
-            }
+            if (obj.optBoolean("success", false)) Result(true, "وضعیت به‌روز شد")
+            else Result(false, obj.optString("message", "خطا"))
         } catch (e: Exception) {
             Result(false, e.message ?: "خطای شبکه")
         }
