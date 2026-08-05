@@ -26,7 +26,8 @@ object ApiClient {
         val success: Boolean,
         val message: String = "",
         val cache: WidgetCache? = null,
-        val token: String? = null
+        val token: String? = null,
+        val task: TaskItem? = null
     )
 
     fun normalizeUrl(raw: String): String {
@@ -133,7 +134,37 @@ object ApiClient {
                 "action" to "getGroups",
                 "token" to token
             ))
-            val groupsObj = parseJson(getText(groupsUrl))
+            val tasksData = JSONObject().apply {
+                put("page", 0)
+                put("limit", 80)
+            }
+            val tasksUrl = buildUrl(baseUrl, mapOf(
+                "action" to "getTasks",
+                "token" to token,
+                "data" to tasksData.toString()
+            ))
+
+            // هر دو درخواست هم‌زمان اجرا می‌شن به‌جای پشت‌سرهم — تقریباً نصف کردن زمان همگام‌سازی کامل
+            var groupsText = ""
+            var tasksText = ""
+            var groupsError: Exception? = null
+            var tasksError: Exception? = null
+
+            val groupsThread = Thread {
+                try { groupsText = getText(groupsUrl) } catch (e: Exception) { groupsError = e }
+            }
+            val tasksThread = Thread {
+                try { tasksText = getText(tasksUrl) } catch (e: Exception) { tasksError = e }
+            }
+            groupsThread.start()
+            tasksThread.start()
+            groupsThread.join()
+            tasksThread.join()
+
+            groupsError?.let { throw it }
+            tasksError?.let { throw it }
+
+            val groupsObj = parseJson(groupsText)
             if (groupsObj.has("message") && !groupsObj.optBoolean("success", true)) {
                 return Result(false, groupsObj.optString("message", "خطا در گروه‌ها"))
             }
@@ -156,16 +187,7 @@ object ApiClient {
                 groupsMap["none"] = GroupItem("none", "بدون گروه")
             }
 
-            val tasksData = JSONObject().apply {
-                put("page", 0)
-                put("limit", 80)
-            }
-            val tasksUrl = buildUrl(baseUrl, mapOf(
-                "action" to "getTasks",
-                "token" to token,
-                "data" to tasksData.toString()
-            ))
-            val tasksObj = parseJson(getText(tasksUrl))
+            val tasksObj = parseJson(tasksText)
             if (tasksObj.has("message") && !tasksObj.optBoolean("success", true)) {
                 return Result(false, tasksObj.optString("message", "خطا در تسک‌ها"))
             }
@@ -207,9 +229,11 @@ object ApiClient {
         return try {
             // دقیقاً مطابق quickAdd فرانت‌اند تسک‌پلاس
             val created = JalaliUtils.nowTehranJalaliString()
+            val id = JalaliUtils.newTaskId()
+            val cleanTitle = title.trim()
             val task = JSONObject().apply {
-                put("id", JalaliUtils.newTaskId())
-                put("title", title.trim())
+                put("id", id)
+                put("title", cleanTitle)
                 put("status", "todo")
                 put("priority", 0)
                 put("date", "")
@@ -229,7 +253,17 @@ object ApiClient {
             ))
             val obj = parseJson(getText(url))
             if (obj.optBoolean("success", false)) {
-                Result(true, "تسک اضافه شد ($created)")
+                val newTask = TaskItem(
+                    id = id,
+                    title = cleanTitle,
+                    status = "todo",
+                    priority = 0,
+                    date = "",
+                    created = created,
+                    group = "none",
+                    notes = ""
+                )
+                Result(true, "تسک اضافه شد ($created)", task = newTask)
             } else {
                 Result(false, obj.optString("message", "خطا در افزودن"))
             }

@@ -5,6 +5,7 @@ import android.os.Bundle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ToggleTaskActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -13,38 +14,37 @@ class ToggleTaskActivity : Activity() {
             finish(); return
         }
         val appCtx = applicationContext
-        val cacheHint = Prefs.loadCache(this).copy(updatedAt = "…")
-        WidgetRenderer.applyData(this, cacheHint)
 
         CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val baseUrl = Prefs.webappUrl(appCtx)
-                val token = Prefs.token(appCtx)
-                val cache = Prefs.loadCache(appCtx)
-                val task = cache.tasks.find { it.id == taskId }
-                if (task != null && baseUrl.isNotBlank() && token.isNotBlank()) {
-                    val result = ApiClient.toggleTaskDone(baseUrl, token, task)
-                    if (result.success) {
-                        val newStatus = if (task.status == "done") "todo" else "done"
-                        val updated = cache.tasks.map {
-                            if (it.id == taskId) it.copy(status = newStatus) else it
-                        }
-                        val newCache = cache.copy(
-                            tasks = updated,
-                            offline = false,
-                            updatedAt = JalaliUtils.nowTehranJalaliString()
-                        )
-                        Prefs.saveCache(appCtx, newCache)
-                        WidgetRenderer.applyData(appCtx, newCache)
-                    }
-                }
-                WidgetRenderer.fetchAndApply(appCtx)
-            } finally {
-                runOnUiThread {
-                    finish()
-                    moveTaskToBack(true)
-                }
+            val cache = Prefs.loadCache(appCtx)
+            val task = cache.tasks.find { it.id == taskId }
+
+            // به‌روزرسانی خوش‌بینانه و فوری — هیچ صبری برای شبکه نداره
+            if (task != null) {
+                val newStatus = if (task.status == "done") "todo" else "done"
+                val optimistic = cache.copy(
+                    tasks = cache.tasks.map { if (it.id == taskId) it.copy(status = newStatus) else it }
+                )
+                Prefs.saveCache(appCtx, optimistic)
+                WidgetRenderer.applyData(appCtx, optimistic)
             }
+
+            withContext(Dispatchers.Main) {
+                finish()
+                moveTaskToBack(true)
+            }
+
+            // اعمال واقعی روی سرور در پس‌زمینه — دیگر چیزی رو بلاک نمی‌کنه
+            if (task != null) {
+                try {
+                    val baseUrl = Prefs.webappUrl(appCtx)
+                    val token = Prefs.token(appCtx)
+                    if (baseUrl.isNotBlank() && token.isNotBlank()) {
+                        ApiClient.toggleTaskDone(baseUrl, token, task)
+                    }
+                } catch (_: Exception) { }
+            }
+            WidgetUpdateService.start(appCtx)
         }
     }
 }

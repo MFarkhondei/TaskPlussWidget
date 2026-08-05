@@ -23,10 +23,9 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text=""
-        android:textSize="13sp"
-        android:textStyle="bold"
+        android:textSize="14sp"
         android:textColor="#F8FAFC"
-        android:fontFamily="@font/vazirmatn"
+        android:fontFamily="@font/vazirmatn_bold"
         android:maxLines="2"
         android:ellipsize="end"
         android:paddingStart="8dp"
@@ -37,8 +36,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text=""
-        android:textSize="10sp"
+        android:textSize="11sp"
         android:textColor="#F5C542"
-        android:fontFamily="@font/vazirmatn"
+        android:fontFamily="@font/vazirmatn_regular"
         android:paddingStart="4dp" />
 </LinearLayout>

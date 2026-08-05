@@ -40,19 +40,26 @@ class AddTaskActivity : AppCompatActivity() {
             btnSave.isEnabled = false
             btnClose.isEnabled = false
 
+            val appCtx = applicationContext
             CoroutineScope(Dispatchers.Main).launch {
                 val result = withContext(Dispatchers.IO) {
                     ApiClient.addTask(baseUrl, token, title)
                 }
-                if (result.success) {
-                    Toast.makeText(this@AddTaskActivity, "تسک اضافه شد", Toast.LENGTH_SHORT).show()
-                    val appCtx = applicationContext
-                    CoroutineScope(Dispatchers.IO).launch {
-                        WidgetRenderer.fetchAndApply(appCtx)
+                val newTask = result.task
+                if (result.success && newTask != null) {
+                    withContext(Dispatchers.IO) {
+                        val cache = Prefs.loadCache(appCtx)
+                        val updated = cache.copy(
+                            tasks = listOf(newTask) + cache.tasks,
+                            offline = false
+                        )
+                        Prefs.saveCache(appCtx, updated)
+                        WidgetRenderer.applyData(appCtx, updated)
                     }
+                    Toast.makeText(this@AddTaskActivity, "تسک اضافه شد", Toast.LENGTH_SHORT).show()
                     goHome()
                 } else {
-                    tvStatus.text = result.message
+                    tvStatus.text = result.message.ifBlank { "خطا در افزودن" }
                     btnSave.isEnabled = true
                     btnClose.isEnabled = true
                 }
