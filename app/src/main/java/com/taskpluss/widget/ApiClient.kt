@@ -11,9 +11,6 @@ import com.taskpluss.widget.model.GroupItem
 import com.taskpluss.widget.model.TaskItem
 import com.taskpluss.widget.model.WidgetCache
 
-/**
- * کلاینت API تسک‌پلاس — مقاوم در برابر قطع شبکه و redirect گوگل
- */
 object ApiClient {
 
     private const val TIMEOUT = 60000
@@ -137,17 +134,27 @@ object ApiClient {
         throw Exception("Redirect بیش از حد")
     }
 
-    private fun getTextWithRetry(fullUrl: String, retries: Int = 4): String {
+    private fun getTextWithRetry(fullUrl: String, retries: Int = 5): String {
         var last: Exception? = null
         for (attempt in 1..retries) {
             try {
                 return getText(fullUrl)
             } catch (e: Exception) {
                 last = e
+                val msg = (e.message ?: "").lowercase()
+                val isDns = e is java.net.UnknownHostException ||
+                    msg.contains("unable to resolve host") ||
+                    msg.contains("no address associated") ||
+                    msg.contains("unknownhost")
                 if (attempt < retries) {
-                    try { Thread.sleep(700L * attempt) } catch (_: InterruptedException) { }
+                    val delay = if (isDns) (1500L * attempt).coerceAtMost(8000L) else (700L * attempt)
+                    try { Thread.sleep(delay) } catch (_: InterruptedException) { }
                 }
             }
+        }
+        val m = last?.message ?: "خطای شبکه"
+        if (m.lowercase().contains("unable to resolve host") || last is java.net.UnknownHostException) {
+            throw Exception("DNS: اینترنت یا محدودیت باتری را چک کنید")
         }
         throw last ?: Exception("خطای شبکه")
     }
@@ -196,7 +203,7 @@ object ApiClient {
                     "action" to "getGroups",
                     "token" to token
                 ))
-                val groupsObj = parseJson(getTextWithRetry(groupsUrl, retries = 4))
+                val groupsObj = parseJson(getTextWithRetry(groupsUrl, retries = 5))
                 if (groupsObj.has("message") && !groupsObj.optBoolean("success", true)) {
                     groupsError = groupsObj.optString("message", "خطا در گروه‌ها")
                     return@Thread
@@ -259,7 +266,6 @@ object ApiClient {
         val seenIds = mutableSetOf<String>()
         var page = 0
         var totalHint = -1
-
         while (page < 200) {
             val resp = requestTasksPage(baseUrl, token, page = page, limit = PAGE_SIZE)
             if (totalHint < 0 && resp.total > 0) totalHint = resp.total
@@ -271,18 +277,9 @@ object ApiClient {
         return tasks
     }
 
-    private data class TasksPage(
-        val tasks: List<TaskItem>,
-        val hasMore: Boolean,
-        val total: Int
-    )
+    private data class TasksPage(val tasks: List<TaskItem>, val hasMore: Boolean, val total: Int)
 
-    private fun requestTasksPage(
-        baseUrl: String,
-        token: String,
-        page: Int,
-        limit: Int
-    ): TasksPage {
+    private fun requestTasksPage(baseUrl: String, token: String, page: Int, limit: Int): TasksPage {
         val tasksData = JSONObject().apply {
             put("page", page)
             put("limit", limit)
@@ -292,16 +289,14 @@ object ApiClient {
             "token" to token,
             "data" to tasksData.toString()
         ))
-        val text = getTextWithRetry(url, retries = 4)
+        val text = getTextWithRetry(url, retries = 5)
         val obj = parseJson(text)
-
         if (!obj.optBoolean("success", true)) {
             throw Exception(obj.optString("message", "خطا در دریافت تسک‌ها"))
         }
         if (obj.has("message") && !obj.has("tasks") && !obj.optBoolean("success", false)) {
             throw Exception(obj.optString("message"))
         }
-
         val arr = obj.optJSONArray("tasks") ?: JSONArray()
         val list = ArrayList<TaskItem>(arr.length())
         for (i in 0 until arr.length()) {
@@ -328,11 +323,7 @@ object ApiClient {
         return TasksPage(list, hasMore, total)
     }
 
-    private fun appendTasks(
-        out: MutableList<TaskItem>,
-        seen: MutableSet<String>,
-        incoming: List<TaskItem>
-    ) {
+    private fun appendTasks(out: MutableList<TaskItem>, seen: MutableSet<String>, incoming: List<TaskItem>) {
         for (t in incoming) {
             if (t.id.isNotBlank() && seen.add(t.id)) out.add(t)
         }
@@ -365,10 +356,7 @@ object ApiClient {
             ))
             val obj = parseJson(getTextWithRetry(url))
             if (obj.optBoolean("success", false)) {
-                Result(
-                    true, "تسک اضافه شد ($created)",
-                    task = TaskItem(id, cleanTitle, "todo", 0, "", created, "none", "")
-                )
+                Result(true, "تسک اضافه شد ($created)", task = TaskItem(id, cleanTitle, "todo", 0, "", created, "none", ""))
             } else {
                 Result(false, obj.optString("message", "خطا در افزودن"))
             }
