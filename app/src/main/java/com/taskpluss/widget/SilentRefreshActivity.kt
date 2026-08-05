@@ -2,28 +2,24 @@ package com.taskpluss.widget
 
 import android.app.Activity
 import android.os.Bundle
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
-/** رفرش دستی — همان مسیر شبکه تنظیمات (Activity شفاف بدون dim) */
+/**
+ * رفرش دستی از ویجت:
+ * وضعیت «در حال به‌روزرسانی» را نشان می‌دهد و کار شبکه را
+ * به Foreground Service می‌سپارد تا روی سامسونگ DNS قطع نشود.
+ */
 class SilentRefreshActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val cache = Prefs.loadCache(this).copy(updatedAt = "در حال به‌روزرسانی…", offline = false)
-        WidgetRenderer.applyData(this, cache)
+        try {
+            val cache = Prefs.loadCache(this).copy(
+                updatedAt = "در حال به‌روزرسانی…",
+                offline = false
+            )
+            WidgetRenderer.applyData(this, cache)
+        } catch (_: Exception) { }
 
-        val appCtx = applicationContext
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                WidgetRenderer.fetchAndApply(appCtx)
-                AlarmHelper.rescheduleAfterSuccess(appCtx)
-            } finally {
-                runOnUiThread {
-                    finish()
-                    moveTaskToBack(true)
-                }
-            }
-        }
+        WidgetUpdateService.startForceRefresh(applicationContext)
+        finish()
     }
 }
