@@ -70,12 +70,12 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         val rv = RemoteViews(context.packageName, R.layout.item_task)
         rv.setImageViewResource(R.id.iv_check, R.drawable.ic_check_empty)
 
-        // اولویت‌بندی: فونت +۲ و عرض بیت‌مپ متناسب تا scale نشود
+        // اولویت‌بندی: نیم درجه (+0.5sp) بزرگ‌تر از همه
         val listFont: Float
         val titleWidth: Int
         if (showGroupChip) {
-            listFont = (titleFontSp + 2f).coerceAtMost(22f)
-            titleWidth = 155
+            listFont = (titleFontSp + 0.5f).coerceAtMost(22f)
+            titleWidth = 170
         } else {
             listFont = titleFontSp
             titleWidth = 200
