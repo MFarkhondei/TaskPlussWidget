@@ -1,6 +1,8 @@
 package com.taskpluss.widget
 
+import android.content.Context
 import android.os.Bundle
+import android.view.inputmethod.InputMethodManager
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -97,6 +99,15 @@ class TaskFormActivity : AppCompatActivity() {
         }
 
         btnClose.setOnClickListener { finish() }
+
+        // افزودن: فوکوس روی عنوان و کیبورد
+        if (editingTask == null) {
+            etTitle.requestFocus()
+            etTitle.post {
+                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.showSoftInput(etTitle, InputMethodManager.SHOW_IMPLICIT)
+            }
+        }
 
         btnDelete.setOnClickListener {
             val existing = editingTask ?: return@setOnClickListener
