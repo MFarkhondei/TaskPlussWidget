@@ -23,13 +23,12 @@ object WidgetText {
         }
     }
 
-    /** عنوان تسک — Regular (ضخامت کمتر) */
     fun setTitle(
         context: Context,
         rv: RemoteViews,
         viewId: Int,
         text: String,
-        textSizeSp: Float = 12.5f,
+        textSizeSp: Float = 11f,
         color: Int = 0xFFF8FAFC.toInt(),
         maxWidthDp: Int = 240,
         maxLines: Int = 3
@@ -53,7 +52,7 @@ object WidgetText {
             return
         }
         val bmp = render(
-            context, text, 12f, color, bold = false,
+            context, text, 11f, color, bold = false,
             maxWidthDp = 24, maxLines = 1, align = Align.CENTER
         )
         rv.setImageViewBitmap(viewId, bmp)
