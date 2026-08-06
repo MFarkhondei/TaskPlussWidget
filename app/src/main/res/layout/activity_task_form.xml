@@ -199,6 +199,18 @@
             android:layout_marginBottom="6dp" />
 
         <Button
+            android:id="@+id/btn_delete_task"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:text="حذف تسک"
+            android:textColor="#F8FAFC"
+            android:textSize="13sp"
+            android:fontFamily="@font/vazirmatn"
+            android:backgroundTint="#B91C1C"
+            android:layout_marginBottom="6dp"
+            android:visibility="gone" />
+
+        <Button
             android:id="@+id/btn_close"
             android:layout_width="match_parent"
             android:layout_height="40dp"
