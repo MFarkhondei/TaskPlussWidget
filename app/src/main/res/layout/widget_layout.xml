@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- LinearLayout + TextView + ImageView + ListView (اسکرول عمودی مجاز) -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
@@ -17,16 +16,13 @@
         android:layoutDirection="ltr"
         android:paddingBottom="8dp">
 
-        <TextView
-            android:id="@+id/tv_title"
+        <ImageView
+            android:id="@+id/iv_widget_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="تسک پلاس"
-            android:textSize="20sp"
-            android:textColor="#F5C542"
-            android:fontFamily="@font/vazirmatn_bold"
-            android:gravity="start|center_vertical"
-            android:layout_gravity="start|center_vertical" />
+            android:adjustViewBounds="true"
+            android:scaleType="fitStart"
+            android:contentDescription="تسک پلاس" />
 
         <TextView
             android:layout_width="0dp"
@@ -34,16 +30,15 @@
             android:layout_weight="1"
             android:text="" />
 
-        <TextView
-            android:id="@+id/tv_updated"
+        <ImageView
+            android:id="@+id/iv_updated"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="—"
-            android:textSize="12sp"
-            android:textColor="#64748B"
-            android:fontFamily="@font/vazirmatn_regular"
+            android:adjustViewBounds="true"
+            android:scaleType="fitEnd"
             android:paddingEnd="8dp"
-            android:paddingStart="4dp" />
+            android:paddingStart="4dp"
+            android:contentDescription="وضعیت" />
 
         <ImageView
             android:id="@+id/iv_refresh"
@@ -70,17 +65,16 @@
             android:src="@drawable/ic_add"
             android:contentDescription="افزودن" />
 
-        <TextView
+        <ImageView
+            android:id="@+id/iv_add_task_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="افزودن تسک جدید"
-            android:textSize="15sp"
-            android:textColor="#0A0F1A"
-            android:fontFamily="@font/vazirmatn_bold"
-            android:paddingStart="8dp" />
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:paddingStart="8dp"
+            android:contentDescription="افزودن تسک جدید" />
     </LinearLayout>
 
-    <!-- گروه‌ها: دکمه‌های ‹ › برای دیدن همه گروه‌ها (HorizontalScrollView در RemoteViews نیست) -->
     <LinearLayout
         android:id="@+id/row_groups"
         android:layout_width="match_parent"
@@ -109,75 +103,63 @@
             android:layoutDirection="rtl"
             android:gravity="center">
 
-            <TextView
+            <ImageView
                 android:id="@+id/chip_group_0"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="همه"
-                android:textSize="13sp"
-                android:textColor="#F5C542"
-                android:fontFamily="@font/vazirmatn_bold"
+                android:minHeight="36dp"
                 android:background="@drawable/bg_chip_selected"
-                android:gravity="center"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
                 android:layout_marginEnd="3dp"
-                android:maxLines="1"
-                android:ellipsize="end" />
+                android:contentDescription="گروه" />
 
-            <TextView
+            <ImageView
                 android:id="@+id/chip_group_1"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="—"
-                android:textSize="13sp"
-                android:textColor="#94A3B8"
-                android:fontFamily="@font/vazirmatn_regular"
+                android:minHeight="36dp"
                 android:background="@drawable/bg_chip"
-                android:gravity="center"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
                 android:layout_marginEnd="3dp"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:visibility="gone" />
+                android:visibility="gone"
+                android:contentDescription="گروه" />
 
-            <TextView
+            <ImageView
                 android:id="@+id/chip_group_2"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="—"
-                android:textSize="13sp"
-                android:textColor="#94A3B8"
-                android:fontFamily="@font/vazirmatn_regular"
+                android:minHeight="36dp"
                 android:background="@drawable/bg_chip"
-                android:gravity="center"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
                 android:layout_marginEnd="3dp"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:visibility="gone" />
+                android:visibility="gone"
+                android:contentDescription="گروه" />
 
-            <TextView
+            <ImageView
                 android:id="@+id/chip_group_3"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="—"
-                android:textSize="13sp"
-                android:textColor="#94A3B8"
-                android:fontFamily="@font/vazirmatn_regular"
+                android:minHeight="36dp"
                 android:background="@drawable/bg_chip"
-                android:gravity="center"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:visibility="gone" />
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:visibility="gone"
+                android:contentDescription="گروه" />
         </LinearLayout>
 
         <TextView
@@ -202,16 +184,14 @@
         android:scrollbars="vertical"
         android:fadeScrollbars="false" />
 
-    <TextView
-        android:id="@+id/tv_empty"
+    <ImageView
+        android:id="@+id/iv_empty"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="تسکی وجود ندارد"
-        android:textSize="14sp"
-        android:textColor="#64748B"
-        android:fontFamily="@font/vazirmatn_regular"
-        android:gravity="center"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
         android:padding="16dp"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:contentDescription="خالی" />
 
 </LinearLayout>
