@@ -2,8 +2,8 @@ package com.taskpluss.widget
 
 import android.content.Context
 import android.os.Bundle
-import android.view.inputmethod.InputMethodManager
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
@@ -100,8 +100,10 @@ class TaskFormActivity : AppCompatActivity() {
 
         btnClose.setOnClickListener { finish() }
 
-        // افزودن: فوکوس روی عنوان و کیبورد
+        // افزودن تسک: فوکوس روی عنوان + باز شدن کیبورد
         if (editingTask == null) {
+            etTitle.isFocusable = true
+            etTitle.isFocusableInTouchMode = true
             etTitle.requestFocus()
             etTitle.post {
                 val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
