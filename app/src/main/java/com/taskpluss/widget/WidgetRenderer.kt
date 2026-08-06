@@ -62,6 +62,12 @@ object WidgetRenderer {
     private fun buildRemoteViews(context: Context, cache: WidgetCache, appWidgetId: Int): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.widget_layout)
 
+        WidgetText.setLabel(
+            context, rv, R.id.iv_widget_title, "تسک پلاس",
+            textSizeSp = 18f, color = 0xFFF5C542.toInt(), bold = true,
+            maxWidthDp = 120, align = WidgetText.Align.LTR_START
+        )
+
         val activeAll = cache.tasks.count { it.status != "done" }
         val statusText = when {
             cache.offline && cache.updatedAt.isNotBlank() -> cache.updatedAt
@@ -69,10 +75,11 @@ object WidgetRenderer {
             cache.updatedAt.isNotBlank() -> "${cache.updatedAt} · $activeAll"
             else -> "—"
         }
-        rv.setTextViewText(R.id.tv_updated, statusText)
-        rv.setTextColor(
-            R.id.tv_updated,
-            if (cache.offline) 0xFFF87171.toInt() else 0xFF64748B.toInt()
+        val statusColor = if (cache.offline) 0xFFF87171.toInt() else 0xFF64748B.toInt()
+        WidgetText.setLabel(
+            context, rv, R.id.iv_updated, statusText,
+            textSizeSp = 11f, color = statusColor, bold = false,
+            maxWidthDp = 160, align = WidgetText.Align.LTR_START
         )
 
         val refreshPi = PendingIntent.getActivity(
@@ -82,6 +89,11 @@ object WidgetRenderer {
         )
         rv.setOnClickPendingIntent(R.id.iv_refresh, refreshPi)
 
+        WidgetText.setLabel(
+            context, rv, R.id.iv_add_task_label, "افزودن تسک جدید",
+            textSizeSp = 14f, color = 0xFF0A0F1A.toInt(), bold = false,
+            maxWidthDp = 160, align = WidgetText.Align.CENTER
+        )
         val addPi = PendingIntent.getActivity(
             context, 1,
             Intent(context, AddTaskActivity::class.java),
@@ -91,7 +103,6 @@ object WidgetRenderer {
 
         val allKeys = mutableListOf("all", "by_priority")
         val allNames = mutableListOf("همه", "اولویت‌بندی")
-        // ترتیب مطابق جدول (بدون sort الفبایی)
         cache.groups.entries
             .filter { it.key != "none" }
             .forEach {
@@ -109,15 +120,16 @@ object WidgetRenderer {
             val idx = start + i
             if (idx < allKeys.size) {
                 rv.setViewVisibility(CHIP_IDS[i], View.VISIBLE)
-                rv.setTextViewText(CHIP_IDS[i], allNames[idx])
                 val selected = allKeys[idx] == cache.selectedGroupKey
+                val chipColor = if (selected) 0xFFF5C542.toInt() else 0xFF94A3B8.toInt()
+                WidgetText.setLabel(
+                    context, rv, CHIP_IDS[i], allNames[idx],
+                    textSizeSp = 12.5f, color = chipColor, bold = selected,
+                    maxWidthDp = 90, align = WidgetText.Align.CENTER
+                )
                 rv.setInt(
                     CHIP_IDS[i], "setBackgroundResource",
                     if (selected) R.drawable.bg_chip_selected else R.drawable.bg_chip
-                )
-                rv.setTextColor(
-                    CHIP_IDS[i],
-                    if (selected) 0xFFF5C542.toInt() else 0xFF94A3B8.toInt()
                 )
                 val gPi = PendingIntent.getActivity(
                     context, 100 + i,
@@ -168,10 +180,15 @@ object WidgetRenderer {
             }
         }
         if (activeInGroup == 0) {
-            rv.setViewVisibility(R.id.tv_empty, View.VISIBLE)
+            rv.setViewVisibility(R.id.iv_empty, View.VISIBLE)
             rv.setViewVisibility(R.id.list_tasks, View.GONE)
+            WidgetText.setLabel(
+                context, rv, R.id.iv_empty, "تسکی وجود ندارد",
+                textSizeSp = 13f, color = 0xFF64748B.toInt(), bold = false,
+                maxWidthDp = 200, align = WidgetText.Align.CENTER
+            )
         } else {
-            rv.setViewVisibility(R.id.tv_empty, View.GONE)
+            rv.setViewVisibility(R.id.iv_empty, View.GONE)
             rv.setViewVisibility(R.id.list_tasks, View.VISIBLE)
         }
 
