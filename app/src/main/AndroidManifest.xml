@@ -4,19 +4,20 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/ic_launcher_foreground"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.TaskPlussWidget"
-        android:usesCleartextTraffic="false">
+        android:usesCleartextTraffic="true">
 
         <activity
             android:name=".ConfigActivity"
@@ -32,28 +33,26 @@
             android:name=".TaskFormActivity"
             android:exported="false"
             android:theme="@style/Theme.TaskPlussWidget"
+            android:excludeFromRecents="true"
             android:windowSoftInputMode="stateVisible|adjustResize"
-            android:excludeFromRecents="true" />
+            android:taskAffinity=""
+            android:launchMode="singleTask" />
 
         <activity
             android:name=".AddTaskActivity"
             android:exported="false"
             android:theme="@style/Theme.TaskPlussWidget"
-            android:excludeFromRecents="true" />
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:launchMode="singleTask" />
 
         <activity
             android:name=".SilentRefreshActivity"
             android:exported="false"
             android:theme="@style/Theme.TaskPlussWidget.Transparent"
             android:excludeFromRecents="true"
-            android:taskAffinity="" />
-
-        <activity
-            android:name=".ToggleTaskActivity"
-            android:exported="false"
-            android:theme="@style/Theme.TaskPlussWidget.Transparent"
-            android:excludeFromRecents="true"
-            android:taskAffinity="" />
+            android:taskAffinity=""
+            android:launchMode="singleTask" />
 
         <activity
             android:name=".GroupSelectActivity"
@@ -69,10 +68,17 @@
             android:excludeFromRecents="true"
             android:taskAffinity="" />
 
+        <activity
+            android:name=".ToggleTaskActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TaskPlussWidget.Transparent"
+            android:excludeFromRecents="true"
+            android:taskAffinity="" />
+
         <receiver
             android:name=".TaskPlussWidgetProvider"
             android:exported="true"
-            android:label="@string/widget_name">
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -83,24 +89,27 @@
 
         <receiver
             android:name=".BootReceiver"
-            android:exported="true">
+            android:exported="true"
+            android:enabled="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
 
         <receiver
             android:name=".WidgetUpdateReceiver"
-            android:exported="false" />
-
-        <service
-            android:name=".TaskListService"
             android:exported="false"
-            android:permission="android.permission.BIND_REMOTEVIEWS" />
+            android:enabled="true" />
 
         <service
             android:name=".WidgetUpdateService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+
+        <service
+            android:name=".TaskListService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
     </application>
 </manifest>
