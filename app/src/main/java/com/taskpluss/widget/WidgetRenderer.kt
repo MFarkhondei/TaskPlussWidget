@@ -75,11 +75,10 @@ object WidgetRenderer {
             else -> "—"
         }
         val statusColor = if (cache.offline) 0xFFF87171.toInt() else 0xFF64748B.toInt()
-        // عرض کافی برای تاریخ کامل مثل 1405/05/15 14:30
         WidgetText.setLabel(
             context, rv, R.id.iv_updated, statusText,
             textSizeSp = 10.5f, color = statusColor, bold = false,
-            maxWidthDp = 150, align = WidgetText.Align.LTR_START
+            maxWidthDp = 145, align = WidgetText.Align.LTR_START
         )
 
         val refreshPi = PendingIntent.getActivity(
@@ -87,7 +86,11 @@ object WidgetRenderer {
             Intent(context, SilentRefreshActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+        // هدر / عنوان / زمان / رفرش → به‌روزرسانی (نه تنظیمات)
         rv.setOnClickPendingIntent(R.id.iv_refresh, refreshPi)
+        rv.setOnClickPendingIntent(R.id.iv_updated, refreshPi)
+        rv.setOnClickPendingIntent(R.id.iv_widget_title, refreshPi)
+        rv.setOnClickPendingIntent(R.id.row_header, refreshPi)
 
         WidgetText.setLabel(
             context, rv, R.id.iv_add_task_label, "افزودن تسک جدید",
