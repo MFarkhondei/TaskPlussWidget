@@ -2,6 +2,7 @@ package com.taskpluss.widget
 
 import android.content.Context
 import android.content.Intent
+import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import com.taskpluss.widget.model.TaskItem
@@ -9,6 +10,9 @@ import com.taskpluss.widget.model.TaskItem
 class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.RemoteViewsFactory {
 
     private var tasks: List<TaskItem> = emptyList()
+    private var showGroupChip: Boolean = false
+    private var groupNames: Map<String, String> = emptyMap()
+    private var groupOrder: List<String> = emptyList()
 
     override fun onCreate() {}
 
@@ -16,6 +20,11 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         val cache = Prefs.loadCache(context)
         val key = cache.selectedGroupKey
         val active = cache.tasks.filter { it.status != "done" }
+
+        // ترتیب گروه‌ها مطابق جدول
+        groupOrder = cache.groups.keys.filter { it != "none" }.toList()
+        groupNames = cache.groups.mapValues { it.value.name }
+        showGroupChip = (key == "by_priority")
 
         val byPriorityAsc = compareBy<TaskItem> {
             if (it.priority in 1..5) it.priority else 99
@@ -25,9 +34,28 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
             "all" -> active.sortedWith(
                 compareByDescending<TaskItem> { it.created }.thenByDescending { it.id }
             )
-            "by_priority" -> active.sortedWith(byPriorityAsc)
+            "by_priority" -> active.sortedWith(
+                // اول گروه (ترتیب جدول)، بعد اولویت ۱…۵
+                compareBy<TaskItem> { groupRank(it.group) }
+                    .thenBy { if (it.priority in 1..5) it.priority else 99 }
+                    .thenByDescending { it.created }
+            )
             else -> active.filter { it.group == key }.sortedWith(byPriorityAsc)
         }
+    }
+
+    /** رتبه گروه برای مرتب‌سازی — مطابق ترتیب جدول */
+    private fun groupRank(groupKey: String): Int {
+        val g = if (groupKey.isBlank()) "none" else groupKey
+        if (g == "none") return 10_000
+        val idx = groupOrder.indexOf(g)
+        return if (idx >= 0) idx else 5_000
+    }
+
+    private fun groupLabel(groupKey: String): String {
+        val g = if (groupKey.isBlank()) "none" else groupKey
+        if (g == "none") return "بدون گروه"
+        return groupNames[g] ?: g
     }
 
     override fun onDestroy() { tasks = emptyList() }
@@ -45,6 +73,20 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
 
         val label = if (t.priority in 1..5) t.priority.toString() else ""
         WidgetText.setPriority(context, rv, R.id.iv_task_priority, label, priorityColor(t.priority))
+
+        if (showGroupChip) {
+            rv.setViewVisibility(R.id.iv_task_group, View.VISIBLE)
+            WidgetText.setLabel(
+                context, rv, R.id.iv_task_group, groupLabel(t.group),
+                textSizeSp = 10.5f,
+                color = 0xFF94A3B8.toInt(),
+                bold = false,
+                maxWidthDp = 72,
+                align = WidgetText.Align.CENTER
+            )
+        } else {
+            rv.setViewVisibility(R.id.iv_task_group, View.GONE)
+        }
 
         val toggleFill = Intent().apply {
             putExtra("task_id", t.id)
