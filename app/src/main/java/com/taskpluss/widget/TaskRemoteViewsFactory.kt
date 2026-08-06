@@ -13,13 +13,17 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
     private var showGroupChip: Boolean = false
     private var groupNames: Map<String, String> = emptyMap()
     private var groupOrder: List<String> = emptyList()
+    private var titleFontSp: Float = 11f
 
     override fun onCreate() {}
 
     override fun onDataSetChanged() {
         val cache = Prefs.loadCache(context)
         val key = cache.selectedGroupKey
-        val active = cache.tasks.filter { it.status != "done" }
+        titleFontSp = Prefs.taskFontSp(context).coerceIn(9f, 20f)
+        val active = cache.tasks.filter {
+            it.status != "done" && it.status != "deleted"
+        }
 
         groupOrder = cache.groups.keys.filter { it != "none" }.toList()
         groupNames = cache.groups.mapValues { it.value.name }
@@ -66,10 +70,9 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         val rv = RemoteViews(context.packageName, R.layout.item_task)
         rv.setImageViewResource(R.id.iv_check, R.drawable.ic_check_empty)
 
-        // یکسان برای همه حالت‌ها تا scale متفاوت نشود
         WidgetText.setTitle(
             context, rv, R.id.iv_task_title, t.title,
-            textSizeSp = 12.5f,
+            textSizeSp = titleFontSp,
             maxWidthDp = 200,
             maxLines = 2
         )
@@ -81,7 +84,7 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
             rv.setViewVisibility(R.id.iv_task_group, View.VISIBLE)
             WidgetText.setLabel(
                 context, rv, R.id.iv_task_group, groupLabel(t.group),
-                textSizeSp = 10.5f,
+                textSizeSp = (titleFontSp - 1.5f).coerceAtLeast(9f),
                 color = 0xFF94A3B8.toInt(),
                 bold = false,
                 maxWidthDp = 64,

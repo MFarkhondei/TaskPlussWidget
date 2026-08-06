@@ -18,6 +18,16 @@ class ConfigActivity : AppCompatActivity() {
     private val intervals = listOf(0, 15, 30, 60, 120)
     private val intervalLabels = listOf("فقط دستی", "۱۵ دقیقه", "۳۰ دقیقه", "۶۰ دقیقه", "۱۲۰ دقیقه")
 
+    private val fontSizes = listOf(10f, 11f, 12f, 13f, 14f, 16f)
+    private val fontLabels = listOf(
+        "۱۰ — خیلی کوچک",
+        "۱۱ — کوچک",
+        "۱۲ — متوسط",
+        "۱۳ — کمی بزرگ",
+        "۱۴ — بزرگ",
+        "۱۶ — خیلی بزرگ"
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_config)
@@ -26,8 +36,10 @@ class ConfigActivity : AppCompatActivity() {
         val etUser = findViewById<EditText>(R.id.et_username)
         val etPass = findViewById<EditText>(R.id.et_password)
         val spinner = findViewById<Spinner>(R.id.spinner_interval)
+        val spinnerFont = findViewById<Spinner>(R.id.spinner_font_size)
         val btnLogin = findViewById<Button>(R.id.btn_login)
         val btnTest = findViewById<Button>(R.id.btn_test)
+        val btnApplyFont = findViewById<Button>(R.id.btn_apply_font)
         val tvStatus = findViewById<TextView>(R.id.tv_status)
 
         val savedUrl = Prefs.webappUrl(this)
@@ -35,13 +47,27 @@ class ConfigActivity : AppCompatActivity() {
         etUser.setText(Prefs.username(this))
 
         spinner.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            intervalLabels
+            this, android.R.layout.simple_spinner_dropdown_item, intervalLabels
         )
-        val currentInterval = Prefs.intervalMin(this)
-        val idx = intervals.indexOf(currentInterval).coerceAtLeast(0)
-        spinner.setSelection(idx)
+        spinner.setSelection(intervals.indexOf(Prefs.intervalMin(this)).coerceAtLeast(0))
+
+        spinnerFont.adapter = ArrayAdapter(
+            this, android.R.layout.simple_spinner_dropdown_item, fontLabels
+        )
+        val curFont = Prefs.taskFontSp(this)
+        val fontIdx = fontSizes.indexOfFirst { kotlin.math.abs(it - curFont) < 0.01f }
+            .let { if (it < 0) 1 else it }
+        spinnerFont.setSelection(fontIdx)
+
+        btnApplyFont.setOnClickListener {
+            val spSize = fontSizes.getOrElse(spinnerFont.selectedItemPosition) { 11f }
+            Prefs.setTaskFontSp(this, spSize)
+            Prefs.setIntervalMin(this, intervals.getOrElse(spinner.selectedItemPosition) { 30 })
+            AlarmHelper.schedule(this)
+            WidgetRenderer.applyData(this, Prefs.loadCache(this))
+            Toast.makeText(this, "اندازه فونت اعمال شد", Toast.LENGTH_SHORT).show()
+            tvStatus.text = "فونت ${spSize.toInt()}sp ذخیره شد"
+        }
 
         btnLogin.setOnClickListener {
             val url = ApiClient.normalizeUrl(etUrl.text?.toString().orEmpty())
@@ -72,6 +98,10 @@ class ConfigActivity : AppCompatActivity() {
                         this@ConfigActivity,
                         intervals[spinner.selectedItemPosition]
                     )
+                    Prefs.setTaskFontSp(
+                        this@ConfigActivity,
+                        fontSizes.getOrElse(spinnerFont.selectedItemPosition) { 11f }
+                    )
                     AlarmHelper.schedule(this@ConfigActivity)
                     tvStatus.text = "ورود موفق — در حال بارگذاری…"
                     withContext(Dispatchers.IO) {
@@ -95,6 +125,10 @@ class ConfigActivity : AppCompatActivity() {
             }
             Prefs.setWebappUrl(this, url)
             Prefs.setIntervalMin(this, intervals[spinner.selectedItemPosition])
+            Prefs.setTaskFontSp(
+                this,
+                fontSizes.getOrElse(spinnerFont.selectedItemPosition) { 11f }
+            )
             AlarmHelper.schedule(this)
             tvStatus.text = "در حال رفرش…"
             CoroutineScope(Dispatchers.Main).launch {
