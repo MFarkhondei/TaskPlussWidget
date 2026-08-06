@@ -4,20 +4,19 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher_foreground"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.TaskPlussWidget"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="false">
 
         <activity
             android:name=".ConfigActivity"
@@ -33,26 +32,28 @@
             android:name=".TaskFormActivity"
             android:exported="false"
             android:theme="@style/Theme.TaskPlussWidget"
-            android:excludeFromRecents="true"
-            android:windowSoftInputMode="adjustResize"
-            android:taskAffinity=""
-            android:launchMode="singleTask" />
+            android:windowSoftInputMode="stateVisible|adjustResize"
+            android:excludeFromRecents="true" />
 
         <activity
             android:name=".AddTaskActivity"
             android:exported="false"
             android:theme="@style/Theme.TaskPlussWidget"
-            android:excludeFromRecents="true"
-            android:taskAffinity=""
-            android:launchMode="singleTask" />
+            android:excludeFromRecents="true" />
 
         <activity
             android:name=".SilentRefreshActivity"
             android:exported="false"
             android:theme="@style/Theme.TaskPlussWidget.Transparent"
             android:excludeFromRecents="true"
-            android:taskAffinity=""
-            android:launchMode="singleTask" />
+            android:taskAffinity="" />
+
+        <activity
+            android:name=".ToggleTaskActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TaskPlussWidget.Transparent"
+            android:excludeFromRecents="true"
+            android:taskAffinity="" />
 
         <activity
             android:name=".GroupSelectActivity"
@@ -68,17 +69,10 @@
             android:excludeFromRecents="true"
             android:taskAffinity="" />
 
-        <activity
-            android:name=".ToggleTaskActivity"
-            android:exported="false"
-            android:theme="@style/Theme.TaskPlussWidget.Transparent"
-            android:excludeFromRecents="true"
-            android:taskAffinity="" />
-
         <receiver
             android:name=".TaskPlussWidgetProvider"
             android:exported="true"
-            android:label="@string/app_name">
+            android:label="@string/widget_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -100,14 +94,13 @@
             android:exported="false" />
 
         <service
+            android:name=".TaskListService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+        <service
             android:name=".WidgetUpdateService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
-
-        <service
-            android:name=".TaskListService"
-            android:permission="android.permission.BIND_REMOTEVIEWS"
-            android:exported="false" />
-
     </application>
 </manifest>
