@@ -9,6 +9,7 @@
     android:layoutDirection="rtl">
 
     <LinearLayout
+        android:id="@+id/row_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -30,7 +31,6 @@
             android:layout_weight="1"
             android:text="" />
 
-        <!-- زمان به‌روزرسانی چسبیده به آیکن رفرش -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -44,16 +44,17 @@
                 android:layout_height="wrap_content"
                 android:adjustViewBounds="true"
                 android:scaleType="fitEnd"
-                android:paddingEnd="2dp"
+                android:paddingEnd="0dp"
                 android:contentDescription="وضعیت" />
 
             <ImageView
                 android:id="@+id/iv_refresh"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
                 android:src="@drawable/ic_refresh"
                 android:contentDescription="رفرش"
-                android:padding="2dp" />
+                android:padding="1dp"
+                android:layout_marginStart="2dp" />
         </LinearLayout>
     </LinearLayout>
 
