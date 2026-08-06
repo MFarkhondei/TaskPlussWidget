@@ -44,6 +44,12 @@ object Prefs {
         @JvmName("setGroupPageExt")
         set(v) { sp(this).edit().putInt("group_page", v).apply() }
 
+    /** اندازه فونت عنوان تسک در ویجت (sp) — پیش‌فرض ۱۱ */
+    var Context.taskFontSp: Float
+        get() = sp(this).getFloat("task_font_sp", 11f)
+        @JvmName("setTaskFontSpExt")
+        set(v) { sp(this).edit().putFloat("task_font_sp", v).apply() }
+
     var Context.cacheJson: String
         get() = sp(this).getString("cache_json", "") ?: ""
         set(v) { sp(this).edit().putString("cache_json", v).apply() }
@@ -58,6 +64,7 @@ object Prefs {
     fun intervalMin(ctx: Context) = ctx.intervalMin
     fun selectedGroupKey(ctx: Context) = ctx.selectedGroupKey
     fun groupPage(ctx: Context) = ctx.groupPage
+    fun taskFontSp(ctx: Context) = ctx.taskFontSp
 
     fun setWebappUrl(ctx: Context, v: String) { ctx.webappUrl = v }
     fun setToken(ctx: Context, v: String) { ctx.token = v }
@@ -65,6 +72,7 @@ object Prefs {
     fun setIntervalMin(ctx: Context, v: Int) { ctx.intervalMin = v }
     fun setSelectedGroupKey(ctx: Context, v: String) { ctx.selectedGroupKey = v }
     fun setGroupPage(ctx: Context, v: Int) { ctx.groupPage = v }
+    fun setTaskFontSp(ctx: Context, v: Float) { ctx.taskFontSp = v }
 
     fun saveCache(ctx: Context, cache: WidgetCache) {
         val root = JSONObject()
@@ -80,22 +88,20 @@ object Prefs {
             })
         }
         root.put("tasks", tasksArr)
-        val groupsArr = JSONArray()
         val groupsObj = JSONObject()
+        val orderArr = JSONArray()
         cache.groups.forEach { (k, g) ->
-            if (k == "none") return@forEach
-            groupsArr.put(JSONObject().apply {
-                put("key", g.key); put("name", g.name); put("color", g.color)
-            })
             groupsObj.put(k, JSONObject().apply {
                 put("key", g.key); put("name", g.name); put("color", g.color)
             })
+            orderArr.put(JSONObject().apply {
+                put("key", g.key); put("name", g.name); put("color", g.color)
+            })
         }
-        root.put("groupsOrder", groupsArr)
         root.put("groups", groupsObj)
+        root.put("groupsOrder", orderArr)
         ctx.cacheJson = root.toString()
         ctx.cacheAt = System.currentTimeMillis()
-        ctx.selectedGroupKey = cache.selectedGroupKey
     }
 
     fun loadCache(ctx: Context): WidgetCache {
