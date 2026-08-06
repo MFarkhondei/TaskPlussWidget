@@ -68,18 +68,18 @@ object WidgetRenderer {
             maxWidthDp = 120, align = WidgetText.Align.LTR_START
         )
 
-        val activeAll = cache.tasks.count { it.status != "done" }
+        val activeAll = cache.tasks.count { it.status != "done" && it.status != "deleted" }
         val statusText = when {
-            cache.offline && cache.updatedAt.isNotBlank() -> cache.updatedAt
-            cache.offline -> "آفلاین · $activeAll"
-            cache.updatedAt.isNotBlank() -> "${cache.updatedAt} · $activeAll"
+            cache.offline && cache.updatedAt.isNotBlank() -> cache.updatedAt.take(18)
+            cache.offline -> "آفلاین"
+            cache.updatedAt.isNotBlank() -> cache.updatedAt.take(14)
             else -> "—"
         }
         val statusColor = if (cache.offline) 0xFFF87171.toInt() else 0xFF64748B.toInt()
         WidgetText.setLabel(
             context, rv, R.id.iv_updated, statusText,
-            textSizeSp = 11f, color = statusColor, bold = false,
-            maxWidthDp = 160, align = WidgetText.Align.LTR_START
+            textSizeSp = 10f, color = statusColor, bold = false,
+            maxWidthDp = 88, align = WidgetText.Align.LTR_START
         )
 
         val refreshPi = PendingIntent.getActivity(
@@ -173,7 +173,7 @@ object WidgetRenderer {
         rv.setPendingIntentTemplate(R.id.list_tasks, templatePi)
 
         val activeInGroup = cache.tasks.count { t ->
-            if (t.status == "done") false
+            if (t.status == "done" || t.status == "deleted") false
             else when (cache.selectedGroupKey) {
                 "all", "by_priority" -> true
                 else -> t.group == cache.selectedGroupKey
