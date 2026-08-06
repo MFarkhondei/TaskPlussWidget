@@ -66,12 +66,11 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         val rv = RemoteViews(context.packageName, R.layout.item_task)
         rv.setImageViewResource(R.id.iv_check, R.drawable.ic_check_empty)
 
-        // همان اندازه فونت همه؛ با چیپ گروه عرض بیت‌مپ کمتر تا scale-down نشود
-        val titleWidth = if (showGroupChip) 168 else 240
+        // یکسان برای همه حالت‌ها تا scale متفاوت نشود
         WidgetText.setTitle(
             context, rv, R.id.iv_task_title, t.title,
             textSizeSp = 12.5f,
-            maxWidthDp = titleWidth,
+            maxWidthDp = 200,
             maxLines = 2
         )
 
