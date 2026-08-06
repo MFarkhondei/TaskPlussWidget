@@ -19,6 +19,12 @@ object ApiClient {
     const val DEFAULT_WEBAPP_URL =
         "https://script.google.com/macros/s/AKfycbx0W1jYG8-N4le384oJFYIwXD1OAgYb5lc6E6vOe9CDO3ov7fmkNRXJNdOvw_GSzGalkw/exec"
 
+    // خواندن تسک‌ها و گروه‌ها مستقیم از Supabase (بدون واسطه Apps Script).
+    // نوشتن (login/add/update/delete) هم‌چنان از طریق Apps Script انجام می‌شود.
+    private const val SUPABASE_URL = "https://uzjaafbreuclhrmalukm.supabase.co"
+    private const val SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6amFhZmJyZXVjbGhybWFsdWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMjkzMTIsImV4cCI6MjEwMTYwNTMxMn0.Byx58LVLhYqbslZ33-W52ROzv7zwovoNG4uI6rAP5HU"
+
     data class Result(
         val success: Boolean,
         val message: String = "",
@@ -159,6 +165,57 @@ object ApiClient {
         throw last ?: Exception("خطای شبکه")
     }
 
+    /** فراخوانی مستقیم توابع RPC در Supabase (rest/v1/rpc/...) با کلید anon. */
+    private fun postSupabaseRpc(fn: String, body: JSONObject): JSONObject {
+        val url = "$SUPABASE_URL/rest/v1/rpc/$fn"
+        val conn = (URL(url).openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"
+            connectTimeout = TIMEOUT
+            readTimeout = TIMEOUT
+            doOutput = true
+            instanceFollowRedirects = true
+            setRequestProperty("apikey", SUPABASE_ANON_KEY)
+            setRequestProperty("Authorization", "Bearer $SUPABASE_ANON_KEY")
+            setRequestProperty("Content-Type", "application/json")
+            setRequestProperty("Accept", "application/json")
+            setRequestProperty("User-Agent", "TaskPlussWidget/1.3 (Android)")
+        }
+        try {
+            conn.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
+            val code = conn.responseCode
+            val stream = if (code in 200..299) conn.inputStream else (conn.errorStream ?: conn.inputStream)
+            val text = BufferedReader(InputStreamReader(stream, Charsets.UTF_8)).use { it.readText() }
+            if (code !in 200..299) throw Exception("Supabase HTTP $code: ${text.take(150)}")
+            if (text.isBlank()) throw Exception("پاسخ خالی از Supabase")
+            return parseJson(text)
+        } finally {
+            conn.disconnect()
+        }
+    }
+
+    private fun postSupabaseRpcWithRetry(fn: String, body: JSONObject, retries: Int = 5): JSONObject {
+        var last: Exception? = null
+        for (attempt in 1..retries) {
+            try {
+                return postSupabaseRpc(fn, body)
+            } catch (e: Exception) {
+                last = e
+                val msg = (e.message ?: "").lowercase()
+                val isDns = e is java.net.UnknownHostException ||
+                    msg.contains("unable to resolve host") || msg.contains("unknownhost")
+                if (attempt < retries) {
+                    val delay = if (isDns) (1500L * attempt).coerceAtMost(8000L) else (700L * attempt)
+                    try { Thread.sleep(delay) } catch (_: InterruptedException) { }
+                }
+            }
+        }
+        val m = last?.message ?: "خطای شبکه"
+        if (m.lowercase().contains("unable to resolve host")) {
+            throw Exception("DNS: اینترنت یا محدودیت باتری را چک کنید")
+        }
+        throw last ?: Exception("خطای شبکه")
+    }
+
     private fun buildUrl(base: String, params: Map<String, String>): String {
         val b = normalizeUrl(base)
         val q = params.entries.joinToString("&") { (k, v) ->
@@ -199,12 +256,9 @@ object ApiClient {
 
         val groupsThread = Thread {
             try {
-                val groupsUrl = buildUrl(baseUrl, mapOf(
-                    "action" to "getGroups",
-                    "token" to token
-                ))
-                val groupsObj = parseJson(getTextWithRetry(groupsUrl, retries = 5))
-                if (groupsObj.has("message") && !groupsObj.optBoolean("success", true)) {
+                val groupsBody = JSONObject().apply { put("p_token", token) }
+                val groupsObj = postSupabaseRpcWithRetry("tp_get_groups", groupsBody, retries = 5)
+                if (!groupsObj.optBoolean("success", true)) {
                     groupsError = groupsObj.optString("message", "خطا در گروه‌ها")
                     return@Thread
                 }
@@ -280,22 +334,14 @@ object ApiClient {
     private data class TasksPage(val tasks: List<TaskItem>, val hasMore: Boolean, val total: Int)
 
     private fun requestTasksPage(baseUrl: String, token: String, page: Int, limit: Int): TasksPage {
-        val tasksData = JSONObject().apply {
-            put("page", page)
-            put("limit", limit)
+        val body = JSONObject().apply {
+            put("p_token", token)
+            put("p_limit", limit)
+            put("p_offset", page * limit)
         }
-        val url = buildUrl(baseUrl, mapOf(
-            "action" to "getTasks",
-            "token" to token,
-            "data" to tasksData.toString()
-        ))
-        val text = getTextWithRetry(url, retries = 5)
-        val obj = parseJson(text)
+        val obj = postSupabaseRpcWithRetry("tp_get_tasks", body, retries = 5)
         if (!obj.optBoolean("success", true)) {
             throw Exception(obj.optString("message", "خطا در دریافت تسک‌ها"))
-        }
-        if (obj.has("message") && !obj.has("tasks") && !obj.optBoolean("success", false)) {
-            throw Exception(obj.optString("message"))
         }
         val arr = obj.optJSONArray("tasks") ?: JSONArray()
         val list = ArrayList<TaskItem>(arr.length())
