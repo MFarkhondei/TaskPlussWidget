@@ -21,7 +21,6 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         val key = cache.selectedGroupKey
         val active = cache.tasks.filter { it.status != "done" }
 
-        // ترتیب گروه‌ها مطابق جدول
         groupOrder = cache.groups.keys.filter { it != "none" }.toList()
         groupNames = cache.groups.mapValues { it.value.name }
         showGroupChip = (key == "by_priority")
@@ -35,7 +34,6 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
                 compareByDescending<TaskItem> { it.created }.thenByDescending { it.id }
             )
             "by_priority" -> active.sortedWith(
-                // اول گروه (ترتیب جدول)، بعد اولویت ۱…۵
                 compareBy<TaskItem> { groupRank(it.group) }
                     .thenBy { if (it.priority in 1..5) it.priority else 99 }
                     .thenByDescending { it.created }
@@ -44,7 +42,6 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         }
     }
 
-    /** رتبه گروه برای مرتب‌سازی — مطابق ترتیب جدول */
     private fun groupRank(groupKey: String): Int {
         val g = if (groupKey.isBlank()) "none" else groupKey
         if (g == "none") return 10_000
@@ -69,7 +66,14 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         val rv = RemoteViews(context.packageName, R.layout.item_task)
         rv.setImageViewResource(R.id.iv_check, R.drawable.ic_check_empty)
 
-        WidgetText.setTitle(context, rv, R.id.iv_task_title, t.title)
+        // همان اندازه فونت همه؛ با چیپ گروه عرض بیت‌مپ کمتر تا scale-down نشود
+        val titleWidth = if (showGroupChip) 168 else 240
+        WidgetText.setTitle(
+            context, rv, R.id.iv_task_title, t.title,
+            textSizeSp = 12.5f,
+            maxWidthDp = titleWidth,
+            maxLines = 2
+        )
 
         val label = if (t.priority in 1..5) t.priority.toString() else ""
         WidgetText.setPriority(context, rv, R.id.iv_task_priority, label, priorityColor(t.priority))
@@ -81,7 +85,7 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
                 textSizeSp = 10.5f,
                 color = 0xFF94A3B8.toInt(),
                 bold = false,
-                maxWidthDp = 72,
+                maxWidthDp = 64,
                 align = WidgetText.Align.CENTER
             )
         } else {

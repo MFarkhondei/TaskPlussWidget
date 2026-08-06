@@ -30,23 +30,31 @@
             android:layout_weight="1"
             android:text="" />
 
-        <ImageView
-            android:id="@+id/iv_updated"
+        <!-- زمان به‌روزرسانی چسبیده به آیکن رفرش -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:adjustViewBounds="true"
-            android:scaleType="fitEnd"
-            android:paddingEnd="8dp"
-            android:paddingStart="4dp"
-            android:contentDescription="وضعیت" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layoutDirection="ltr">
 
-        <ImageView
-            android:id="@+id/iv_refresh"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@drawable/ic_refresh"
-            android:contentDescription="رفرش"
-            android:padding="2dp" />
+            <ImageView
+                android:id="@+id/iv_updated"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:scaleType="fitEnd"
+                android:paddingEnd="2dp"
+                android:contentDescription="وضعیت" />
+
+            <ImageView
+                android:id="@+id/iv_refresh"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_refresh"
+                android:contentDescription="رفرش"
+                android:padding="2dp" />
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout

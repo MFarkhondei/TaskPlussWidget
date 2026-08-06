@@ -12,7 +12,6 @@ import com.taskpluss.widget.model.TaskItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class TaskFormActivity : AppCompatActivity() {
 
@@ -70,15 +69,14 @@ class TaskFormActivity : AppCompatActivity() {
             val t = editingTask
             if (t != null) {
                 tvFormTitle.text = "ویرایش تسک"
-                btnSave.text = "ذخیره تغییرات"
                 etTitle.setText(t.title)
-                etNotes.setText(t.notes)
                 val pSel = if (t.priority in 1..5) t.priority else 0
                 spinnerPriority.setSelection(pSel)
                 val gi = groupKeys.indexOf(if (t.group.isBlank()) "none" else t.group)
                 if (gi >= 0) spinnerGroup.setSelection(gi)
                 selectedDateJalali = t.date.trim()
                 tvDueDate.text = if (selectedDateJalali.isBlank()) "بدون تاریخ" else selectedDateJalali
+                etNotes.setText(t.notes)
             }
         }
 
@@ -95,7 +93,7 @@ class TaskFormActivity : AppCompatActivity() {
             tvDueDate.text = "بدون تاریخ"
         }
 
-        btnClose.setOnClickListener { goHome() }
+        btnClose.setOnClickListener { finish() }
 
         btnSave.setOnClickListener {
             val title = etTitle.text?.toString()?.trim().orEmpty()
@@ -114,79 +112,59 @@ class TaskFormActivity : AppCompatActivity() {
             val groupKey = groupKeys.getOrElse(spinnerGroup.selectedItemPosition) { "none" }
             val notes = etNotes.text?.toString()?.trim().orEmpty()
             val date = selectedDateJalali
-
-            tvStatus.text = "در حال ذخیره…"
-            btnSave.isEnabled = false
-            btnClose.isEnabled = false
-
-            val appCtx = applicationContext
             val existing = editingTask
+            val appCtx = applicationContext
 
-            CoroutineScope(Dispatchers.Main).launch {
-                val result = withContext(Dispatchers.IO) {
-                    if (existing != null) {
-                        ApiClient.updateTaskFull(
-                            baseUrl, token,
-                            existing.copy(
-                                title = title,
-                                priority = priority,
-                                group = groupKey,
-                                date = date,
-                                notes = notes
-                            )
-                        )
-                    } else {
-                        ApiClient.addTask(
-                            baseUrl, token, title,
+            // فوری بستن پنجره؛ ذخیره در پس‌زمینه
+            finish()
+
+            CoroutineScope(Dispatchers.IO).launch {
+                val result = if (existing != null) {
+                    ApiClient.updateTaskFull(
+                        baseUrl, token,
+                        existing.copy(
+                            title = title,
                             priority = priority,
                             group = groupKey,
                             date = date,
                             notes = notes
                         )
-                    }
+                    )
+                } else {
+                    ApiClient.addTask(
+                        baseUrl, token, title,
+                        priority = priority,
+                        group = groupKey,
+                        date = date,
+                        notes = notes
+                    )
                 }
 
                 if (result.success) {
-                    withContext(Dispatchers.IO) {
-                        val c = Prefs.loadCache(appCtx)
-                        val tasks = if (existing != null) {
-                            c.tasks.map {
-                                if (it.id == existing.id) {
-                                    it.copy(
-                                        title = title,
-                                        priority = priority,
-                                        group = groupKey,
-                                        date = date,
-                                        notes = notes
-                                    )
-                                } else it
-                            }
-                        } else {
-                            val nt = result.task
-                            if (nt != null) listOf(nt) + c.tasks else c.tasks
+                    val c = Prefs.loadCache(appCtx)
+                    val tasks = if (existing != null) {
+                        c.tasks.map {
+                            if (it.id == existing.id) {
+                                it.copy(
+                                    title = title,
+                                    priority = priority,
+                                    group = groupKey,
+                                    date = date,
+                                    notes = notes
+                                )
+                            } else it
                         }
-                        val updated = c.copy(tasks = tasks, offline = false)
-                        Prefs.saveCache(appCtx, updated)
-                        WidgetRenderer.applyData(appCtx, updated)
+                    } else {
+                        val nt = result.task
+                        if (nt != null) listOf(nt) + c.tasks else c.tasks
                     }
-                    Toast.makeText(
-                        this@TaskFormActivity,
-                        if (existing != null) "ذخیره شد" else "تسک اضافه شد",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    goHome()
-                } else {
-                    tvStatus.text = result.message.ifBlank { "خطا در ذخیره" }
-                    btnSave.isEnabled = true
-                    btnClose.isEnabled = true
+                    val updated = c.copy(tasks = tasks, offline = false)
+                    Prefs.saveCache(appCtx, updated)
+                    WidgetRenderer.applyData(appCtx, updated)
                 }
+                // در صورت خطا کش قبلی می‌ماند؛ رفرش دستی کافی است
             }
         }
-    }
-
-    private fun goHome() {
-        finish()
-        moveTaskToBack(true)
     }
 
     companion object {
