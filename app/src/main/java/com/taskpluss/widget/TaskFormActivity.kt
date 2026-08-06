@@ -100,7 +100,6 @@ class TaskFormActivity : AppCompatActivity() {
 
         btnClose.setOnClickListener { finish() }
 
-        // افزودن تسک: فوکوس روی عنوان + باز شدن کیبورد
         if (editingTask == null) {
             etTitle.isFocusable = true
             etTitle.isFocusableInTouchMode = true
@@ -121,12 +120,9 @@ class TaskFormActivity : AppCompatActivity() {
                     val token = Prefs.token(this)
                     val appCtx = applicationContext
                     val id = existing.id
-                    val snapshot = existing
                     finish()
                     CoroutineScope(Dispatchers.IO).launch {
-                        val result = ApiClient.updateTaskFull(
-                            baseUrl, token, snapshot.copy(status = "deleted")
-                        )
+                        val result = ApiClient.deleteTask(baseUrl, token, id)
                         if (result.success) {
                             val c = Prefs.loadCache(appCtx)
                             val updated = c.copy(tasks = c.tasks.filter { it.id != id })
