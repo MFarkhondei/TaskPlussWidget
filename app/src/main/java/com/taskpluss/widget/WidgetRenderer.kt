@@ -68,18 +68,18 @@ object WidgetRenderer {
             maxWidthDp = 120, align = WidgetText.Align.LTR_START
         )
 
-        val activeAll = cache.tasks.count { it.status != "done" && it.status != "deleted" }
         val statusText = when {
-            cache.offline && cache.updatedAt.isNotBlank() -> cache.updatedAt.take(18)
+            cache.offline && cache.updatedAt.isNotBlank() -> cache.updatedAt
             cache.offline -> "آفلاین"
-            cache.updatedAt.isNotBlank() -> cache.updatedAt.take(14)
+            cache.updatedAt.isNotBlank() -> cache.updatedAt
             else -> "—"
         }
         val statusColor = if (cache.offline) 0xFFF87171.toInt() else 0xFF64748B.toInt()
+        // عرض کافی برای تاریخ کامل مثل 1405/05/15 14:30
         WidgetText.setLabel(
             context, rv, R.id.iv_updated, statusText,
-            textSizeSp = 10f, color = statusColor, bold = false,
-            maxWidthDp = 88, align = WidgetText.Align.LTR_START
+            textSizeSp = 10.5f, color = statusColor, bold = false,
+            maxWidthDp = 150, align = WidgetText.Align.LTR_START
         )
 
         val refreshPi = PendingIntent.getActivity(

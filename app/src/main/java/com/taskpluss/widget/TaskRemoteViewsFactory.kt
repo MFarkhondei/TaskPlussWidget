@@ -70,9 +70,11 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         val rv = RemoteViews(context.packageName, R.layout.item_task)
         rv.setImageViewResource(R.id.iv_check, R.drawable.ic_check_empty)
 
+        // در اولویت‌بندی یک شماره بزرگ‌تر از تنظیمات
+        val listFont = if (showGroupChip) (titleFontSp + 1f).coerceAtMost(20f) else titleFontSp
         WidgetText.setTitle(
             context, rv, R.id.iv_task_title, t.title,
-            textSizeSp = titleFontSp,
+            textSizeSp = listFont,
             maxWidthDp = 200,
             maxLines = 2
         )
