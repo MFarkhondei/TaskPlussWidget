@@ -1,12 +1,13 @@
 package com.taskpluss.widget
 
 import android.os.Bundle
+import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
-import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.taskpluss.widget.model.TaskItem
 import kotlinx.coroutines.CoroutineScope
@@ -32,6 +33,7 @@ class TaskFormActivity : AppCompatActivity() {
         val btnClearDate = findViewById<Button>(R.id.btn_clear_date)
         val etNotes = findViewById<EditText>(R.id.et_notes)
         val btnSave = findViewById<Button>(R.id.btn_save_task)
+        val btnDelete = findViewById<Button>(R.id.btn_delete_task)
         val btnClose = findViewById<Button>(R.id.btn_close)
         val tvStatus = findViewById<TextView>(R.id.tv_add_status)
 
@@ -77,6 +79,7 @@ class TaskFormActivity : AppCompatActivity() {
                 selectedDateJalali = t.date.trim()
                 tvDueDate.text = if (selectedDateJalali.isBlank()) "بدون تاریخ" else selectedDateJalali
                 etNotes.setText(t.notes)
+                btnDelete.visibility = View.VISIBLE
             }
         }
 
@@ -94,6 +97,31 @@ class TaskFormActivity : AppCompatActivity() {
         }
 
         btnClose.setOnClickListener { finish() }
+
+        btnDelete.setOnClickListener {
+            val existing = editingTask ?: return@setOnClickListener
+            AlertDialog.Builder(this)
+                .setTitle("حذف تسک")
+                .setMessage("آیا از حذف «${existing.title}» مطمئن هستید؟")
+                .setPositiveButton("حذف") { _, _ ->
+                    val baseUrl = Prefs.webappUrl(this)
+                    val token = Prefs.token(this)
+                    val appCtx = applicationContext
+                    val id = existing.id
+                    finish()
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val result = ApiClient.deleteTask(baseUrl, token, id)
+                        if (result.success) {
+                            val c = Prefs.loadCache(appCtx)
+                            val updated = c.copy(tasks = c.tasks.filter { it.id != id })
+                            Prefs.saveCache(appCtx, updated)
+                            WidgetRenderer.applyData(appCtx, updated)
+                        }
+                    }
+                }
+                .setNegativeButton("انصراف", null)
+                .show()
+        }
 
         btnSave.setOnClickListener {
             val title = etTitle.text?.toString()?.trim().orEmpty()
@@ -115,7 +143,6 @@ class TaskFormActivity : AppCompatActivity() {
             val existing = editingTask
             val appCtx = applicationContext
 
-            // فوری بستن پنجره؛ ذخیره در پس‌زمینه
             finish()
 
             CoroutineScope(Dispatchers.IO).launch {
@@ -162,7 +189,6 @@ class TaskFormActivity : AppCompatActivity() {
                     Prefs.saveCache(appCtx, updated)
                     WidgetRenderer.applyData(appCtx, updated)
                 }
-                // در صورت خطا کش قبلی می‌ماند؛ رفرش دستی کافی است
             }
         }
     }
