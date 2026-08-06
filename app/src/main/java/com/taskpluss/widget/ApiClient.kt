@@ -442,5 +442,22 @@ object ApiClient {
         }
     }
 
+    /** حذف واقعی مطابق بک‌اند: action=deleteTask و data.id */
+    fun deleteTask(baseUrl: String, token: String, taskId: String): Result {
+        return try {
+            val data = JSONObject().apply { put("id", taskId) }
+            val url = buildUrl(baseUrl, mapOf(
+                "action" to "deleteTask",
+                "token" to token,
+                "data" to data.toString()
+            ))
+            val obj = parseJson(getTextWithRetry(url))
+            if (obj.optBoolean("success", false)) Result(true, "حذف شد")
+            else Result(false, obj.optString("message", "خطا در حذف"))
+        } catch (e: Exception) {
+            Result(false, e.message ?: "خطای شبکه")
+        }
+    }
+
     private fun nowTime(): String = JalaliUtils.nowTehranJalaliString()
 }
