@@ -98,6 +98,31 @@
             android:layout_height="wrap_content"
             android:background="@drawable/bg_section"
             android:padding="12dp"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="اندازه فونت لیست تسک‌ها"
+            android:textColor="#94A3B8"
+            android:textSize="13sp"
+            android:paddingBottom="4dp" />
+
+        <Spinner
+            android:id="@+id/spinner_font_size"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_section"
+            android:padding="12dp"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btn_apply_font"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="اعمال اندازه فونت"
+            android:textColor="#F8FAFC"
+            android:backgroundTint="#334155"
             android:layout_marginBottom="16dp" />
 
         <Button
