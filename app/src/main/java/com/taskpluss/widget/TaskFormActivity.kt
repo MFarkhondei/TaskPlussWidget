@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 class TaskFormActivity : AppCompatActivity() {
 
     private var selectedDateJalali: String = ""
+    private var selectedStatus: String = "todo"
     private var editingTask: TaskItem? = null
     private val groupKeys = mutableListOf<String>()
 
@@ -38,6 +39,30 @@ class TaskFormActivity : AppCompatActivity() {
         val btnDelete = findViewById<Button>(R.id.btn_delete_task)
         val btnClose = findViewById<Button>(R.id.btn_close)
         val tvStatus = findViewById<TextView>(R.id.tv_add_status)
+        val tvStatusTodo = findViewById<TextView>(R.id.tv_status_todo)
+        val tvStatusDoing = findViewById<TextView>(R.id.tv_status_doing)
+        val tvStatusDone = findViewById<TextView>(R.id.tv_status_done)
+        val statusViews = mapOf(
+            "todo" to tvStatusTodo,
+            "doing" to tvStatusDoing,
+            "done" to tvStatusDone
+        )
+
+        fun renderStatusSelection() {
+            statusViews.forEach { (key, view) ->
+                val selected = key == selectedStatus
+                view.setBackgroundResource(if (selected) R.drawable.bg_chip_selected else R.drawable.bg_chip)
+                view.setTextColor(if (selected) 0xFFF5C542.toInt() else 0xFF94A3B8.toInt())
+                view.setTypeface(view.typeface, if (selected) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+            }
+        }
+        statusViews.forEach { (key, view) ->
+            view.setOnClickListener {
+                selectedStatus = key
+                renderStatusSelection()
+            }
+        }
+        renderStatusSelection()
 
         val priorityLabels = listOf(
             "بدون اولویت",
@@ -81,16 +106,25 @@ class TaskFormActivity : AppCompatActivity() {
                 selectedDateJalali = t.date.trim()
                 tvDueDate.text = if (selectedDateJalali.isBlank()) "بدون تاریخ" else selectedDateJalali
                 etNotes.setText(t.notes)
+                selectedStatus = if (t.status in statusViews.keys) t.status else "todo"
+                renderStatusSelection()
                 btnDelete.visibility = View.VISIBLE
             }
         }
 
-        btnPickDate.setOnClickListener {
+        val openDatePicker = {
             val initial = JalaliUtils.parseJalaliDate(selectedDateJalali)
             JalaliDatePickerDialog.show(this, initial) { y, m, d ->
                 selectedDateJalali = JalaliUtils.formatJalaliDate(y, m, d)
                 tvDueDate.text = selectedDateJalali
             }
+        }
+        tvDueDate.setOnClickListener { openDatePicker() }
+
+        btnPickDate.setOnClickListener {
+            val now = JalaliUtils.nowParts()
+            selectedDateJalali = JalaliUtils.formatJalaliDate(now.year, now.month, now.day)
+            tvDueDate.text = selectedDateJalali
         }
 
         btnClearDate.setOnClickListener {
@@ -158,11 +192,13 @@ class TaskFormActivity : AppCompatActivity() {
             finish()
 
             CoroutineScope(Dispatchers.IO).launch {
+                val status = selectedStatus
                 val result = if (existing != null) {
                     ApiClient.updateTaskFull(
                         baseUrl, token,
                         existing.copy(
                             title = title,
+                            status = status,
                             priority = priority,
                             group = groupKey,
                             date = date,
@@ -172,6 +208,7 @@ class TaskFormActivity : AppCompatActivity() {
                 } else {
                     ApiClient.addTask(
                         baseUrl, token, title,
+                        status = status,
                         priority = priority,
                         group = groupKey,
                         date = date,
@@ -186,6 +223,7 @@ class TaskFormActivity : AppCompatActivity() {
                             if (it.id == existing.id) {
                                 it.copy(
                                     title = title,
+                                    status = status,
                                     priority = priority,
                                     group = groupKey,
                                     date = date,

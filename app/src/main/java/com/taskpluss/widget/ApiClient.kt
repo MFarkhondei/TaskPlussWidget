@@ -379,6 +379,7 @@ object ApiClient {
         baseUrl: String,
         token: String,
         title: String,
+        status: String = "todo",
         priority: Int = 0,
         group: String = "none",
         date: String = "",
@@ -388,11 +389,12 @@ object ApiClient {
             val created = JalaliUtils.nowTehranJalaliString()
             val id = JalaliUtils.newTaskId()
             val cleanTitle = title.trim()
+            val cleanStatus = status.ifBlank { "todo" }
             val g = if (group.isBlank()) "none" else group
             val task = JSONObject().apply {
                 put("id", id)
                 put("title", cleanTitle)
-                put("status", "todo")
+                put("status", cleanStatus)
                 put("priority", priority)
                 put("date", date)
                 put("created", created)
@@ -401,8 +403,8 @@ object ApiClient {
                 put("notes", notes)
                 put("mainTask", JSONObject.NULL)
                 put("subtasks", JSONArray())
-                put("doingAt", "")
-                put("doneAt", "")
+                put("doingAt", if (cleanStatus == "doing") created else "")
+                put("doneAt", if (cleanStatus == "done") created else "")
             }
             val url = buildUrl(baseUrl, mapOf(
                 "action" to "addTask",
@@ -414,7 +416,7 @@ object ApiClient {
                 Result(
                     true, "تسک اضافه شد ($created)",
                     task = TaskItem(
-                        id = id, title = cleanTitle, status = "todo",
+                        id = id, title = cleanTitle, status = cleanStatus,
                         priority = priority, date = date, created = created,
                         group = g, notes = notes
                     )

@@ -107,6 +107,64 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="وضعیت"
+            android:textColor="#94A3B8"
+            android:textSize="12sp"
+            android:fontFamily="@font/vazirmatn"
+            android:paddingBottom="2dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/tv_status_todo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:text="انجام‌نشده"
+                android:textSize="12.5sp"
+                android:textColor="#F5C542"
+                android:textStyle="bold"
+                android:fontFamily="@font/vazirmatn"
+                android:gravity="center"
+                android:padding="10dp"
+                android:background="@drawable/bg_chip_selected" />
+
+            <TextView
+                android:id="@+id/tv_status_doing"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:text="در حال انجام"
+                android:textSize="12.5sp"
+                android:textColor="#94A3B8"
+                android:fontFamily="@font/vazirmatn"
+                android:gravity="center"
+                android:padding="10dp"
+                android:background="@drawable/bg_chip" />
+
+            <TextView
+                android:id="@+id/tv_status_done"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="انجام‌شده"
+                android:textSize="12.5sp"
+                android:textColor="#94A3B8"
+                android:fontFamily="@font/vazirmatn"
+                android:gravity="center"
+                android:padding="10dp"
+                android:background="@drawable/bg_chip" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="تاریخ انجام (شمسی)"
             android:textColor="#94A3B8"
             android:textSize="12sp"
@@ -136,7 +194,7 @@
                 android:id="@+id/btn_pick_date"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:text="شمسی"
+                android:text="امروز"
                 android:textSize="12sp"
                 android:textColor="#0A0F1A"
                 android:fontFamily="@font/vazirmatn"
