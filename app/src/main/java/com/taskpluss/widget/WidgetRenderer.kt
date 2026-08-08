@@ -78,7 +78,7 @@ object WidgetRenderer {
         WidgetText.setLabel(
             context, rv, R.id.iv_updated, statusText,
             textSizeSp = 10.5f, color = statusColor, bold = false,
-            maxWidthDp = 145, align = WidgetText.Align.LTR_START
+            maxWidthDp = 145, align = WidgetText.Align.LTR_START, tightFit = true
         )
 
         val refreshPi = PendingIntent.getActivity(

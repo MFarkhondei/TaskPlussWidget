@@ -73,8 +73,8 @@ class TaskFormActivity : AppCompatActivity() {
             "۵ — پایین‌ترین"
         )
         spinnerPriority.adapter = ArrayAdapter(
-            this, android.R.layout.simple_spinner_dropdown_item, priorityLabels
-        )
+            this, R.layout.spinner_item_vazir, priorityLabels
+        ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item_vazir) }
         spinnerPriority.setSelection(0)
 
         val cache = Prefs.loadCache(this)
@@ -89,8 +89,8 @@ class TaskFormActivity : AppCompatActivity() {
                 groupLabels.add(it.value.name)
             }
         spinnerGroup.adapter = ArrayAdapter(
-            this, android.R.layout.simple_spinner_dropdown_item, groupLabels
-        )
+            this, R.layout.spinner_item_vazir, groupLabels
+        ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item_vazir) }
 
         val taskId = intent.getStringExtra(EXTRA_TASK_ID)
         if (!taskId.isNullOrBlank()) {
@@ -238,6 +238,7 @@ class TaskFormActivity : AppCompatActivity() {
                     val updated = c.copy(tasks = tasks, offline = false)
                     Prefs.saveCache(appCtx, updated)
                     WidgetRenderer.applyData(appCtx, updated)
+                    WidgetRenderer.fetchAndApply(appCtx)
                 }
             }
         }

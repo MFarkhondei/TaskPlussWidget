@@ -67,11 +67,12 @@ object WidgetText {
         color: Int = 0xFF94A3B8.toInt(),
         bold: Boolean = false,
         maxWidthDp: Int = 120,
-        align: Align = Align.CENTER
+        align: Align = Align.CENTER,
+        tightFit: Boolean = false
     ) {
         val bmp = render(
             context, text, textSizeSp, color, bold = bold,
-            maxWidthDp = maxWidthDp, maxLines = 1, align = align
+            maxWidthDp = maxWidthDp, maxLines = 1, align = align, tightFit = tightFit
         )
         rv.setImageViewBitmap(viewId, bmp)
     }
@@ -89,7 +90,8 @@ object WidgetText {
         bold: Boolean,
         maxWidthDp: Int,
         maxLines: Int,
-        align: Align
+        align: Align,
+        tightFit: Boolean = false
     ): Bitmap {
         val density = context.resources.displayMetrics.density
         val maxWidthPx = (maxWidthDp * density).toInt().coerceAtLeast(32)
@@ -117,7 +119,13 @@ object WidgetText {
             .setLineSpacing(0f, 1.0f)
             .build()
         val h = layout.height.coerceAtLeast((textSizeSp * density).toInt() + 2)
-        val bmp = Bitmap.createBitmap(maxWidthPx, h, Bitmap.Config.ARGB_8888)
+        val contentWidthPx = if (tightFit) {
+            val lineW = (0 until layout.lineCount).maxOfOrNull { layout.getLineWidth(it) } ?: 0f
+            kotlin.math.ceil(lineW).toInt().coerceIn(1, maxWidthPx)
+        } else {
+            maxWidthPx
+        }
+        val bmp = Bitmap.createBitmap(contentWidthPx, h, Bitmap.Config.ARGB_8888)
         Canvas(bmp).also { layout.draw(it) }
         return bmp
     }
