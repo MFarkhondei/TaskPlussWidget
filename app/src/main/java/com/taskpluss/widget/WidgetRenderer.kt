@@ -57,6 +57,7 @@ object WidgetRenderer {
             mgr.updateAppWidget(id, rv)
             mgr.notifyAppWidgetViewDataChanged(id, R.id.list_tasks)
         }
+        QuickAddNotificationHelper.refresh(context)
     }
 
     private fun buildRemoteViews(context: Context, cache: WidgetCache, appWidgetId: Int): RemoteViews {

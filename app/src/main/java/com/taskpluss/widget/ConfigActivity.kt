@@ -144,7 +144,6 @@ class ConfigActivity : AppCompatActivity() {
                     }
                     tvStatus.text = "آماده است"
                     Toast.makeText(this@ConfigActivity, "آماده است", Toast.LENGTH_SHORT).show()
-                    QuickAddNotificationHelper.refresh(this@ConfigActivity)
                 } else {
                     tvStatus.text = result.message.ifBlank { "ورود ناموفق" }
                 }
@@ -172,7 +171,6 @@ class ConfigActivity : AppCompatActivity() {
                     WidgetRenderer.fetchAndApply(this@ConfigActivity)
                 }
                 tvStatus.text = "رفرش انجام شد"
-                QuickAddNotificationHelper.refresh(this@ConfigActivity)
             }
         }
     }

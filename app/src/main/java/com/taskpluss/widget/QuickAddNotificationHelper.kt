@@ -14,13 +14,13 @@ import android.content.pm.PackageManager
 
 /**
  * نوتیفیکیشن ثابت (persistent) در نوار اعلان‌ها که همیشه یک دکمهٔ
- * «افزودن تسک جدید» در خودش داره تا بدون باز کردن ویجت/اپ بشه تسک اضافه کرد.
+ * «افزودن تسک جدید» در خودش داره تا بدون باز کردن ویجت/اپ بشه تسک اضافه کرد،
+ * و تعداد تسک‌های انجام‌نشده و در حال انجام رو نشون می‌ده.
  */
 object QuickAddNotificationHelper {
     private const val CHANNEL_ID = "taskpluss_quick_add"
     private const val NOTIF_ID = 4210
     private const val REQ_ADD_TASK = 4211
-    private const val REQ_CONTENT = 4212
 
     /** با توجه به تنظیم کاربر، نوتیف رو نشون میده یا مخفی می‌کنه. */
     fun refresh(context: Context) {
@@ -37,6 +37,12 @@ object QuickAddNotificationHelper {
 
         ensureChannel(context)
 
+        val cache = Prefs.loadCache(context)
+        val todoCount = cache.tasks.count { it.status == "todo" }
+        val doingCount = cache.tasks.count { it.status == "doing" }
+        val contentText = "انجام‌نشده: $todoCount   •   در حال انجام: $doingCount"
+
+        // با کلیک روی خودِ اعلان یا دکمه، مستقیماً فرم افزودن تسک باز می‌شود (نه تنظیمات).
         val addTaskIntent = Intent(context, AddTaskActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
@@ -45,23 +51,15 @@ object QuickAddNotificationHelper {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val openIntent = Intent(context, ConfigActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        }
-        val openPendingIntent = PendingIntent.getActivity(
-            context, REQ_CONTENT, openIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
         val notif = NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle("تسک پلاس")
-            .setContentText("دسترسی سریع به تسک‌ها")
+            .setContentText(contentText)
             .setSmallIcon(R.drawable.ic_add)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .setSilent(true)
             .setShowWhen(false)
-            .setContentIntent(openPendingIntent)
+            .setContentIntent(addTaskPendingIntent)
             .addAction(R.drawable.ic_add, "افزودن تسک جدید", addTaskPendingIntent)
             .build()
 
