@@ -1,93 +1,79 @@
-# ترید پلاس ویجت | TradePluss Android Widget
+# تسک پلاس ویجت (TaskPluss Widget)
 
-ویجت صفحهٔ اصلی اندروید برای پروژهٔ **ترید پلاس** که داده‌ها را از API ویجت Apps Script دریافت می‌کند.
-
-![Widget Preview](docs/preview.png)
+ویجت صفحه اصلی اندروید برای مدیریت سریع تسک‌ها، متصل به بک‌اند Google Apps Script پروژه تسک پلاس.
 
 ## ویژگی‌ها
 
-- نمایش **ارزش کل دارایی** (تومان)
-- **سود/زیان خرید روزانه** + درصد
-- **مجموع خرید روزانه**
-- نمودار **روند ۷ روزه** ارزش سبد
-- لیست دارایی‌ها با ارزش جاری و درصد تغییر
-- دکمهٔ **رفرش** دستی
-- بروزرسانی خودکار هر ۳۰ دقیقه
-- ظاهر تیره مطابق طراحی اسکرین‌شات
+- **ظاهر مدرن تیره** مطابق پالت طراحی (طلایی، کارت‌دار، گوشه گرد)
+- **فقط** `LinearLayout` + `TextView` + `ImageView` (سازگار با RemoteViews و سامسونگ One UI)
+- دکمه **افزودن تسک** → باز کردن Activity با فیلد متنی دو خطی
+- **چیپ گروه‌ها**: «همه» + حداکثر ۴ گروه سفارشی
+  - گروه «همه»: مرتب‌سازی بر اساس تاریخ ثبت (جدید → قدیم)
+  - گروه‌های دیگر: مرتب‌سازی بر اساس اولویت (بالا → پایین)
+- کلیک روی چک‌باکس / ردیف تسک → تغییر وضعیت به انجام‌شده / برگشت
+- رفرش دستی با آیکن 🔄
+- به‌روزرسانی خودکار قابل تنظیم (۱۵ / ۳۰ / ۶۰ / ۱۲۰ دقیقه یا فقط دستی)
+- کش محلی + نمایش «آفلاین» در صورت قطع شبکه
+- ساخت APK با GitHub Actions
 
-## پیش‌نیاز در سمت سرور (Apps Script)
+## محدودیت‌های RemoteViews (الزامی)
 
-1. Web App را Deploy کنید (`Execute as: Me` ، `Who has access: Anyone`).
-2. برای هر کاربر توکن ویجت بسازید:
+| مجاز | ممنوع |
+|------|--------|
+| LinearLayout | RelativeLayout / ConstraintLayout / FrameLayout |
+| TextView | EditText داخل ویجت |
+| ImageView | RecyclerView / ListView / ScrollView |
+| حداکثر ۶ ردیف ثابت تسک | addView پویا |
 
-```javascript
-generateWidgetToken('نام_کاربری')
-```
+فیلد متنی داخل خود ویجت پشتیبانی نمی‌شود؛ دکمه «افزودن تسک جدید» Activity مخصوص را باز می‌کند.
 
-توکن در ستون H شیت «کاربران» ذخیره می‌شود.
+## نصب و راه‌اندازی
 
-3. آدرس نهایی شبیه این است:
-```
-https://script.google.com/macros/s/XXXX/exec
-```
+1. ریپو را روی GitHub بسازید و این پروژه را push کنید.
+2. از تب **Actions** ورک‌فلو **Build APK** را اجرا کنید (یا push به main).
+3. Artifact به نام `TaskPlussWidget-debug` را دانلود و نصب کنید.
+4. اپ را باز کنید → آدرس Web App (`.../exec`) + نام کاربری + رمز را وارد کنید → **ورود و ذخیره**.
+5. ویجت را به صفحه اصلی اضافه کنید (Long-press → Widgets → تسک پلاس).
 
-API ویجت:
-```
-GET ?action=widget&user=USERNAME&token=TOKEN
-```
+### نکات سامسونگ
 
-## ساخت APK با GitHub Actions
-
-1. این پوشه را به یک ریپازیتوری GitHub پوش کنید.
-2. به تب **Actions** بروید → workflow **Build TradePluss Widget APK** را اجرا کنید (یا push روی `main`).
-3. پس از اتمام بیلد، از بخش **Artifacts** فایل `TradePluss-Widget-v1.0.0.apk` را دانلود کنید.
-
-### بیلد محلی (اختیاری)
-
-```bash
-# نیاز به Android SDK و JDK 17
-./gradlew assembleDebug
-# خروجی: app/build/outputs/apk/debug/app-debug.apk
-```
-
-## نصب و راه‌اندازی روی گوشی
-
-1. APK را نصب کنید (ممکن است نیاز به اجازهٔ «نصب از منابع ناشناس» باشد).
-2. اپ را باز کنید و این مقادیر را وارد کنید:
-   - **آدرس Web App**
-   - **نام کاربری**
-   - **توکن ویجت**
-3. ذخیره کنید.
-4. روی صفحهٔ اصلی گوشی → Widgets → **ترید پلاس** را اضافه کنید.
+- تنظیمات → اپ‌ها → تسک پلاس → باتری → **بدون محدودیت**
+- در صورت نیاز Private DNS: `dns.shecan.ir`
 
 ## ساختار پروژه
 
 ```
-TradePlussWidget/
-├── app/
-│   ├── src/main/
-│   │   ├── java/com/tradepluss/widget/
-│   │   │   ├── TradePlussWidgetProvider.kt
-│   │   │   ├── ConfigActivity.kt
-│   │   │   ├── ApiClient.kt
-│   │   │   ├── ChartHelper.kt
-│   │   │   └── model/WidgetData.kt
-│   │   ├── res/layout/widget_layout.xml
-│   │   └── AndroidManifest.xml
-│   └── build.gradle.kts
-├── .github/workflows/build-apk.yml
-└── README.md
+app/src/main/
+├── java/com/taskpluss/widget/
+│   ├── TaskPlussWidgetProvider.kt
+│   ├── WidgetRenderer.kt          # منطق مشترک رندر و fetch
+│   ├── ApiClient.kt               # RPC به Google Apps Script
+│   ├── ConfigActivity.kt
+│   ├── AddTaskActivity.kt
+│   ├── SilentRefreshActivity.kt
+│   ├── GroupSelectActivity.kt
+│   ├── ToggleTaskActivity.kt
+│   ├── AlarmHelper.kt
+│   ├── WidgetUpdateReceiver.kt
+│   ├── BootReceiver.kt
+│   ├── Prefs.kt
+│   └── model/Models.kt
+├── res/layout/widget_layout.xml   # فقط LinearLayout/TextView/ImageView
+└── res/xml/widget_info.xml
 ```
 
-## نکات امنیتی
+## اتصال به بک‌اند
 
-- توکن ویجت را عمومی نکنید.
-- Web App را با دسترسی مناسب Deploy کنید.
-- در صورت نیاز می‌توانید توکن را در Apps Script منقضی یا عوض کنید (`generateWidgetToken` دوباره).
+از همان RPC `doPost` با بدنه:
 
-## نسخه
+```json
+{ "fn": "loginUser" | "getGroupsForUser" | "getTasksPage" | "upsertTask", "args": [...] }
+```
 
-- **1.0.0** – ویجت اولیه با API موجود پروژه ترید پلاس
+استفاده می‌شود (مطابق کد Apps Script ارائه‌شده).
 
----
-ساخته‌شده برای پروژه ترید پلاس
+## مجوزها
+
+- INTERNET
+- RECEIVE_BOOT_COMPLETED
+- SCHEDULE_EXACT_ALARM / USE_EXACT_ALARM

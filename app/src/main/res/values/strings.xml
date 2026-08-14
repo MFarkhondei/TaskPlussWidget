@@ -1,38 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ترید پلاس ویجت</string>
-    <string name="widget_name">ترید پلاس</string>
-    <string name="widget_description">ویجت دارایی و سود/زیان ترید پلاس</string>
-    <string name="total_assets">ارزش کل دارایی</string>
-    <string name="daily_buy">مجموع خرید روزانه</string>
-    <string name="daily_pnl">سود و زیان خرید روزانه</string>
-    <string name="trend_7d">روند ۷ روزه (ارزش سبد)</string>
-    <string name="assets">دارایی‌ها</string>
-    <string name="current_value">ارزش جاری</string>
-    <string name="change_percent">تغییر %</string>
-    <string name="toman">تومان</string>
-    <string name="last_update">آخرین بروزرسانی</string>
-    <string name="config_title">ورود به ویجت ترید پلاس</string>
-    <string name="webapp_url_hint">آدرس Web App اسکریپت</string>
-    <string name="username_hint">نام کاربری</string>
+    <string name="app_name">تسک پلاس</string>
+    <string name="widget_name">تسک پلاس</string>
+    <string name="widget_description">مدیریت سریع تسک‌ها روی صفحه اصلی</string>
+    <string name="add_task">افزودن تسک</string>
+    <string name="all_tasks">همه</string>
+    <string name="no_tasks">تسکی وجود ندارد</string>
+    <string name="offline">آفلاین</string>
+    <string name="updating">در حال به‌روزرسانی…</string>
+    <string name="config_title">تنظیمات تسک پلاس</string>
+    <string name="webapp_url_hint">آدرس Web App (exec)</string>
+    <string name="username_hint">نام کاربری (ایمیل)</string>
     <string name="password_hint">رمز عبور</string>
-    <string name="save">ذخیره و ورود</string>
+    <string name="token_hint">توکن (اختیاری اگر لاگین کنید)</string>
+    <string name="login">ورود</string>
+    <string name="save">ذخیره</string>
     <string name="test_connection">تست اتصال</string>
-    <string name="testing">در حال تست...</string>
-    <string name="connection_success">✅ اتصال موفقیت‌آمیز بود</string>
-    <string name="connection_failed">❌ خطا در اتصال: %s</string>
-    <string name="note">با همان نام کاربری و رمز عبور سایت ترید پلاس وارد شوید. نیازی به توکن نیست.</string>
-    <string name="refresh_interval">فاصله به‌روزرسانی خودکار</string>
-    <string name="interval_15">هر ۱۵ دقیقه</string>
-    <string name="interval_30">هر ۳۰ دقیقه</string>
-    <string name="interval_60">هر ۱ ساعت</string>
-    <string name="interval_120">هر ۲ ساعت</string>
-    <string name="interval_manual">فقط دستی (بدون خودکار)</string>
-    <string-array name="refresh_interval_labels">
-        <item>@string/interval_15</item>
-        <item>@string/interval_30</item>
-        <item>@string/interval_60</item>
-        <item>@string/interval_120</item>
-        <item>@string/interval_manual</item>
-    </string-array>
+    <string name="interval_label">فاصله به‌روزرسانی خودکار</string>
+    <string name="task_title_hint">عنوان تسک جدید…</string>
+    <string name="save_task">ذخیره تسک</string>
+    <string name="status_todo">انجام‌نشده</string>
+    <string name="status_done">انجام‌شده</string>
 </resources>
