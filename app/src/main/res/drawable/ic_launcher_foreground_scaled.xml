@@ -4,14 +4,8 @@
         android:width="64.8dp"
         android:height="64.8dp"
         android:gravity="center">
-        <inset
-            android:insetLeft="4.3775dp"
-            android:insetRight="4.3775dp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp">
-            <bitmap
-                android:src="@drawable/ic_launcher_foreground_asset"
-                android:gravity="fill" />
-        </inset>
+        <bitmap
+            android:src="@drawable/ic_launcher_foreground_asset_square"
+            android:gravity="fill" />
     </item>
 </layer-list>
