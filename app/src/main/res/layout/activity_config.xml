@@ -1,181 +1,136 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0A0F1A"
+    android:background="@color/bg_dark"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp"
-        android:layoutDirection="rtl">
+        android:padding="24dp">
+
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center_horizontal"
+            android:src="@drawable/ic_logo"
+            android:contentDescription="@string/app_name" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="تنظیمات تسک پلاس"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="#F5C542"
-            android:paddingBottom="16dp" />
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:text="@string/config_title"
+            android:textColor="@color/accent_gold"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="آدرس Web App"
-            android:textColor="#94A3B8"
-            android:textSize="13sp"
-            android:paddingBottom="4dp" />
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="@string/note"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
 
-        <EditText
-            android:id="@+id/et_webapp_url"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="https://script.google.com/.../exec"
-            android:inputType="textUri"
-            android:textColor="#F8FAFC"
-            android:textColorHint="#64748B"
-            android:background="@drawable/bg_section"
-            android:padding="12dp"
-            android:layout_marginBottom="12dp"
-            android:textSize="14sp" />
+            android:layout_marginTop="24dp"
+            android:hint="@string/webapp_url_hint"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-        <TextView
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_webapp_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textUri"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="نام کاربری (ایمیل)"
-            android:textColor="#94A3B8"
-            android:textSize="13sp"
-            android:paddingBottom="4dp" />
+            android:layout_marginTop="12dp"
+            android:hint="@string/username_hint"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-        <EditText
-            android:id="@+id/et_username"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_username"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textEmailAddress"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="you@example.com"
-            android:inputType="textEmailAddress"
-            android:textColor="#F8FAFC"
-            android:textColorHint="#64748B"
-            android:background="@drawable/bg_section"
-            android:padding="12dp"
-            android:layout_marginBottom="12dp"
-            android:textSize="14sp" />
+            android:layout_marginTop="12dp"
+            android:hint="@string/password_hint"
+            app:endIconMode="password_toggle"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="رمز عبور"
-            android:textColor="#94A3B8"
-            android:textSize="13sp"
-            android:paddingBottom="4dp" />
-
-        <EditText
-            android:id="@+id/et_password"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="رمز عبور"
-            android:inputType="textPassword"
-            android:textColor="#F8FAFC"
-            android:textColorHint="#64748B"
-            android:background="@drawable/bg_section"
-            android:padding="12dp"
-            android:layout_marginBottom="12dp"
-            android:textSize="14sp" />
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="فاصله به‌روزرسانی خودکار (دقیقه)"
-            android:textColor="#94A3B8"
-            android:textSize="13sp"
-            android:paddingBottom="4dp" />
+            android:layout_marginTop="20dp"
+            android:text="@string/refresh_interval"
+            android:textColor="@color/accent_gold"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <Spinner
             android:id="@+id/spinner_interval"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_section"
-            android:padding="12dp"
-            android:layout_marginBottom="12dp" />
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_card"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp" />
 
-        <TextView
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_save"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="اندازه فونت لیست تسک‌ها"
-            android:textColor="#94A3B8"
-            android:textSize="13sp"
-            android:paddingBottom="4dp" />
+            android:layout_height="56dp"
+            android:layout_marginTop="28dp"
+            android:text="@string/save"
+            android:textSize="16sp"
+            app:cornerRadius="12dp" />
 
-        <Spinner
-            android:id="@+id/spinner_font_size"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_test_connection"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_section"
-            android:padding="12dp"
-            android:layout_marginBottom="8dp" />
-
-        <Button
-            android:id="@+id/btn_apply_font"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="اعمال اندازه فونت"
-            android:textColor="#F8FAFC"
-            android:backgroundTint="#334155"
-            android:layout_marginBottom="16dp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="@drawable/bg_section"
-            android:padding="12dp"
-            android:layout_marginBottom="16dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="نوتیفیکیشن ثابتِ افزودن تسک سریع"
-                android:textColor="#F8FAFC"
-                android:textSize="14sp" />
-
-            <Switch
-                android:id="@+id/switch_persistent_notif"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/btn_login"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="ورود و ذخیره"
-            android:textColor="#0A0F1A"
-            android:backgroundTint="#F5C542"
-            android:layout_marginBottom="8dp" />
-
-        <Button
-            android:id="@+id/btn_test"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="تست اتصال و رفرش ویجت"
-            android:textColor="#F8FAFC"
-            android:backgroundTint="#1A2438"
-            android:layout_marginBottom="8dp" />
+            android:layout_height="56dp"
+            android:layout_marginTop="12dp"
+            android:text="@string/test_connection"
+            android:textSize="16sp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            app:cornerRadius="12dp" />
 
         <TextView
             android:id="@+id/tv_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text=""
-            android:textSize="13sp"
-            android:textColor="#94A3B8"
-            android:paddingTop="8dp"
-            android:gravity="center" />
-
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
     </LinearLayout>
 </ScrollView>

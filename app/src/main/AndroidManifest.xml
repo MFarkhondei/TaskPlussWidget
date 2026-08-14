@@ -5,7 +5,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
@@ -13,75 +12,45 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:icon="@drawable/ic_logo"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.TaskPlussWidget"
+        android:theme="@style/Theme.TradePlussWidget"
         android:usesCleartextTraffic="true">
 
         <activity
             android:name=".ConfigActivity"
             android:exported="true"
-            android:theme="@style/Theme.TaskPlussWidget">
+            android:theme="@style/Theme.TradePlussWidget">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".TaskFormActivity"
-            android:exported="false"
-            android:theme="@style/Theme.TaskPlussWidget"
-            android:excludeFromRecents="true"
-            android:windowSoftInputMode="stateVisible|adjustResize"
-            android:taskAffinity=""
-            android:launchMode="singleTask" />
-
-        <activity
-            android:name=".AddTaskActivity"
-            android:exported="false"
-            android:theme="@style/Theme.TaskPlussWidget"
-            android:excludeFromRecents="true"
-            android:taskAffinity=""
-            android:launchMode="singleTask" />
-
+        <!-- Same network path as Config: runs in foreground Activity context -->
         <activity
             android:name=".SilentRefreshActivity"
             android:exported="false"
-            android:theme="@style/Theme.TaskPlussWidget.Transparent"
             android:excludeFromRecents="true"
+            android:finishOnTaskLaunch="true"
+            android:launchMode="singleInstance"
             android:taskAffinity=""
-            android:launchMode="singleTask" />
+            android:theme="@style/Theme.TradePlussWidget.Transparent" />
 
-        <activity
-            android:name=".GroupSelectActivity"
+        <service
+            android:name=".WidgetUpdateService"
             android:exported="false"
-            android:theme="@style/Theme.TaskPlussWidget.Transparent"
-            android:excludeFromRecents="true"
-            android:taskAffinity="" />
-
-        <activity
-            android:name=".GroupPageActivity"
-            android:exported="false"
-            android:theme="@style/Theme.TaskPlussWidget.Transparent"
-            android:excludeFromRecents="true"
-            android:taskAffinity="" />
-
-        <activity
-            android:name=".ToggleTaskActivity"
-            android:exported="false"
-            android:theme="@style/Theme.TaskPlussWidget.Transparent"
-            android:excludeFromRecents="true"
-            android:taskAffinity="" />
+            android:foregroundServiceType="dataSync" />
 
         <receiver
-            android:name=".TaskPlussWidgetProvider"
+            android:name=".TradePlussWidgetProvider"
             android:exported="true"
-            android:label="@string/app_name">
+            android:label="@string/widget_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.tradepluss.widget.ACTION_REFRESH" />
+                <action android:name="com.tradepluss.widget.ACTION_AUTO_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
@@ -90,27 +59,11 @@
 
         <receiver
             android:name=".BootReceiver"
-            android:exported="true"
-            android:enabled="true">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
 
-        <receiver
-            android:name=".WidgetUpdateReceiver"
-            android:exported="false"
-            android:enabled="true" />
-
-        <service
-            android:name=".WidgetUpdateService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
-
-        <service
-            android:name=".TaskListService"
-            android:permission="android.permission.BIND_REMOTEVIEWS"
-            android:exported="false" />
     </application>
 </manifest>

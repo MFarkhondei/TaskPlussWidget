@@ -1,2 +1,2 @@
-# Keep widget related
--keep class com.taskpluss.widget.** { *; }
+# Keep model classes for Gson
+-keepclassmembers class com.tradepluss.widget.model.** { *; }

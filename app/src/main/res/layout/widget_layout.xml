@@ -3,27 +3,28 @@
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@drawable/bg_widget"
-    android:padding="12dp"
-    android:layoutDirection="rtl">
+    android:orientation="vertical"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
 
+    <!-- Header LTR: title LEFT -->
     <LinearLayout
-        android:id="@+id/row_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:gravity="center_vertical"
         android:layoutDirection="ltr"
-        android:paddingBottom="8dp">
+        android:orientation="horizontal">
 
         <ImageView
-            android:id="@+id/iv_widget_title"
+            android:id="@+id/iv_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:adjustViewBounds="true"
             android:scaleType="fitStart"
-            android:contentDescription="تسک پلاس" />
+            android:contentDescription="@string/widget_name" />
 
         <TextView
             android:layout_width="0dp"
@@ -31,176 +32,463 @@
             android:layout_weight="1"
             android:text="" />
 
-        <LinearLayout
+        <ImageView
+            android:id="@+id/iv_updated_at"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layoutDirection="ltr">
+            android:layout_marginEnd="6dp"
+            android:adjustViewBounds="true"
+            android:scaleType="fitEnd" />
+
+        <ImageView
+            android:id="@+id/btn_refresh"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:padding="4dp"
+            android:src="@drawable/ic_refresh"
+            android:contentDescription="@string/last_update" />
+    </LinearLayout>
+
+    <!-- Total assets: سمت راست باکس (RTL مثل قبل) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_section"
+        android:gravity="top|start"
+        android:layoutDirection="rtl"
+        android:orientation="vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <ImageView
+            android:id="@+id/iv_label_total"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:adjustViewBounds="true"
+            android:scaleType="fitStart" />
+
+        <ImageView
+            android:id="@+id/iv_total_assets"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginTop="2dp"
+            android:adjustViewBounds="true"
+            android:scaleType="fitStart" />
+
+        <ImageView
+            android:id="@+id/iv_label_toman_total"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:adjustViewBounds="true"
+            android:scaleType="fitStart" />
+    </LinearLayout>
+
+    <!-- Daily stats -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="3dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_card"
+            android:gravity="top|start"
+            android:layoutDirection="rtl"
+            android:orientation="vertical"
+            android:padding="8dp">
 
             <ImageView
-                android:id="@+id/iv_updated"
+                android:id="@+id/iv_label_pnl"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="start"
                 android:adjustViewBounds="true"
-                android:scaleType="fitEnd"
-                android:paddingEnd="0dp"
-                android:contentDescription="وضعیت" />
+                android:scaleType="fitStart" />
 
             <ImageView
-                android:id="@+id/iv_refresh"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
-                android:src="@drawable/ic_refresh"
-                android:contentDescription="رفرش"
-                android:padding="1dp"
-                android:layout_marginStart="2dp" />
+                android:id="@+id/iv_daily_pnl"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginTop="2dp"
+                android:adjustViewBounds="true"
+                android:scaleType="fitStart" />
+
+            <ImageView
+                android:id="@+id/iv_daily_pnl_pct"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:adjustViewBounds="true"
+                android:scaleType="fitStart" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="3dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_card"
+            android:gravity="top|start"
+            android:layoutDirection="rtl"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <ImageView
+                android:id="@+id/iv_label_buy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:adjustViewBounds="true"
+                android:scaleType="fitStart" />
+
+            <ImageView
+                android:id="@+id/iv_daily_buy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginTop="2dp"
+                android:adjustViewBounds="true"
+                android:scaleType="fitStart" />
+
+            <ImageView
+                android:id="@+id/iv_label_toman_buy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:adjustViewBounds="true"
+                android:scaleType="fitStart" />
         </LinearLayout>
     </LinearLayout>
 
+    <!-- Table header -->
     <LinearLayout
-        android:id="@+id/btn_add_task"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@drawable/bg_add_btn"
-        android:gravity="center"
-        android:padding="10dp"
-        android:layout_marginBottom="10dp">
-
-        <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_add"
-            android:contentDescription="افزودن" />
-
-        <ImageView
-            android:id="@+id/iv_add_task_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:adjustViewBounds="true"
-            android:scaleType="fitCenter"
-            android:paddingStart="8dp"
-            android:contentDescription="افزودن تسک جدید" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/row_groups"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layoutDirection="ltr"
+        android:layout_marginTop="8dp"
         android:gravity="center_vertical"
-        android:paddingBottom="10dp">
+        android:layoutDirection="rtl"
+        android:orientation="horizontal"
+        android:paddingStart="2dp"
+        android:paddingEnd="2dp">
 
-        <TextView
-            android:id="@+id/btn_group_prev"
-            android:layout_width="34dp"
-            android:layout_height="34dp"
-            android:text="‹"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#F5C542"
-            android:gravity="center"
-            android:background="@drawable/bg_chip" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.2"
+            android:gravity="center">
+            <ImageView
+                android:id="@+id/iv_header_assets"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:scaleType="center" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="horizontal"
-            android:layoutDirection="rtl"
             android:gravity="center">
-
             <ImageView
-                android:id="@+id/chip_group_0"
-                android:layout_width="0dp"
+                android:id="@+id/iv_header_value"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:minHeight="36dp"
-                android:background="@drawable/bg_chip_selected"
-                android:scaleType="fitCenter"
                 android:adjustViewBounds="true"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
-                android:layout_marginEnd="3dp"
-                android:contentDescription="گروه" />
-
-            <ImageView
-                android:id="@+id/chip_group_1"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:minHeight="36dp"
-                android:background="@drawable/bg_chip"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
-                android:layout_marginEnd="3dp"
-                android:visibility="gone"
-                android:contentDescription="گروه" />
-
-            <ImageView
-                android:id="@+id/chip_group_2"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:minHeight="36dp"
-                android:background="@drawable/bg_chip"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
-                android:layout_marginEnd="3dp"
-                android:visibility="gone"
-                android:contentDescription="گروه" />
-
-            <ImageView
-                android:id="@+id/chip_group_3"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:minHeight="36dp"
-                android:background="@drawable/bg_chip"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
-                android:visibility="gone"
-                android:contentDescription="گروه" />
+                android:scaleType="center" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/btn_group_next"
-            android:layout_width="34dp"
-            android:layout_height="34dp"
-            android:text="›"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#F5C542"
-            android:gravity="center"
-            android:background="@drawable/bg_chip" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.9"
+            android:gravity="center">
+            <ImageView
+                android:id="@+id/iv_header_pct"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:scaleType="center" />
+        </LinearLayout>
     </LinearLayout>
 
-    <ListView
-        android:id="@+id/list_tasks"
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:divider="@android:color/transparent"
-        android:dividerHeight="4dp"
-        android:scrollbars="vertical"
-        android:fadeScrollbars="false" />
+        android:layout_height="1dp"
+        android:layout_marginTop="4dp"
+        android:background="@color/divider" />
 
-    <ImageView
-        android:id="@+id/iv_empty"
+    <LinearLayout
+        android:id="@+id/row_asset_1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:adjustViewBounds="true"
-        android:scaleType="fitCenter"
-        android:padding="16dp"
-        android:visibility="gone"
-        android:contentDescription="خالی" />
+        android:gravity="center_vertical"
+        android:layoutDirection="rtl"
+        android:orientation="horizontal"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.2"
+            android:gravity="center_vertical|start"
+            android:orientation="horizontal">
+            <ImageView android:id="@+id/iv_asset_1" android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_coin_default" />
+            <ImageView android:id="@+id/iv_asset_1_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:adjustViewBounds="true" android:scaleType="fitStart" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageView android:id="@+id/iv_asset_1_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+            <ImageView android:id="@+id/iv_asset_1_toman" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.9"
+            android:background="@drawable/bg_badge_neg"
+            android:gravity="center"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp">
+            <ImageView android:id="@+id/iv_asset_1_pct" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" />
+
+    <LinearLayout
+        android:id="@+id/row_asset_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:layoutDirection="rtl"
+        android:orientation="horizontal"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.2"
+            android:gravity="center_vertical|start"
+            android:orientation="horizontal">
+            <ImageView android:id="@+id/iv_asset_2" android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_coin_default" />
+            <ImageView android:id="@+id/iv_asset_2_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:adjustViewBounds="true" android:scaleType="fitStart" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageView android:id="@+id/iv_asset_2_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+            <ImageView android:id="@+id/iv_asset_2_toman" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.9"
+            android:background="@drawable/bg_badge_pos"
+            android:gravity="center"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp">
+            <ImageView android:id="@+id/iv_asset_2_pct" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" />
+
+    <LinearLayout
+        android:id="@+id/row_asset_3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:layoutDirection="rtl"
+        android:orientation="horizontal"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.2"
+            android:gravity="center_vertical|start"
+            android:orientation="horizontal">
+            <ImageView android:id="@+id/iv_asset_3" android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_coin_default" />
+            <ImageView android:id="@+id/iv_asset_3_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:adjustViewBounds="true" android:scaleType="fitStart" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageView android:id="@+id/iv_asset_3_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+            <ImageView android:id="@+id/iv_asset_3_toman" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.9"
+            android:background="@drawable/bg_badge_neg"
+            android:gravity="center"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp">
+            <ImageView android:id="@+id/iv_asset_3_pct" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" />
+
+    <LinearLayout
+        android:id="@+id/row_asset_4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:layoutDirection="rtl"
+        android:orientation="horizontal"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.2"
+            android:gravity="center_vertical|start"
+            android:orientation="horizontal">
+            <ImageView android:id="@+id/iv_asset_4" android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_coin_default" />
+            <ImageView android:id="@+id/iv_asset_4_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:adjustViewBounds="true" android:scaleType="fitStart" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageView android:id="@+id/iv_asset_4_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+            <ImageView android:id="@+id/iv_asset_4_toman" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.9"
+            android:background="@drawable/bg_badge_neg"
+            android:gravity="center"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp">
+            <ImageView android:id="@+id/iv_asset_4_pct" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" />
+
+    <LinearLayout
+        android:id="@+id/row_asset_5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:layoutDirection="rtl"
+        android:orientation="horizontal"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.2"
+            android:gravity="center_vertical|start"
+            android:orientation="horizontal">
+            <ImageView android:id="@+id/iv_asset_5" android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_coin_default" />
+            <ImageView android:id="@+id/iv_asset_5_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:adjustViewBounds="true" android:scaleType="fitStart" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageView android:id="@+id/iv_asset_5_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+            <ImageView android:id="@+id/iv_asset_5_toman" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.9"
+            android:background="@drawable/bg_badge_pos"
+            android:gravity="center"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp">
+            <ImageView android:id="@+id/iv_asset_5_pct" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" />
+
+    <!-- row 6: مس (Copper) -->
+    <LinearLayout
+        android:id="@+id/row_asset_6"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:layoutDirection="rtl"
+        android:orientation="horizontal"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.2"
+            android:gravity="center_vertical|start"
+            android:orientation="horizontal">
+            <ImageView android:id="@+id/iv_asset_6" android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_asset_copper" />
+            <ImageView android:id="@+id/iv_asset_6_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:adjustViewBounds="true" android:scaleType="fitStart" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageView android:id="@+id/iv_asset_6_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+            <ImageView android:id="@+id/iv_asset_6_toman" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.9"
+            android:background="@drawable/bg_badge_neg"
+            android:gravity="center"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp">
+            <ImageView android:id="@+id/iv_asset_6_pct" android:layout_width="wrap_content" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="center" />
+        </LinearLayout>
+    </LinearLayout>
 
 </LinearLayout>
