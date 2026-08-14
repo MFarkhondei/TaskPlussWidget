@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:width="70.2dp"
-        android:height="70.2dp"
+        android:width="66.96dp"
+        android:height="66.96dp"
         android:gravity="center">
         <bitmap
             android:src="@drawable/ic_launcher_foreground_asset_square"
