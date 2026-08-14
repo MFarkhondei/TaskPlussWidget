@@ -27,7 +27,6 @@ class TaskFormActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_task_form)
 
-        val tvFormTitle = findViewById<TextView>(R.id.tv_form_title)
         val etTitle = findViewById<EditText>(R.id.et_task_title)
         val spinnerPriority = findViewById<Spinner>(R.id.spinner_priority)
         val spinnerGroup = findViewById<Spinner>(R.id.spinner_group)
@@ -97,7 +96,6 @@ class TaskFormActivity : AppCompatActivity() {
             editingTask = cache.tasks.find { it.id == taskId }
             val t = editingTask
             if (t != null) {
-                tvFormTitle.text = "ویرایش تسک"
                 etTitle.setText(t.title)
                 val pSel = if (t.priority in 1..5) t.priority else 0
                 spinnerPriority.setSelection(pSel)
