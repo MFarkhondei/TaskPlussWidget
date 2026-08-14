@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/item_task_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@drawable/bg_task_row"
+    android:gravity="center_vertical"
+    android:padding="6dp"
+    android:layoutDirection="rtl"
+    android:layout_marginBottom="2dp">
+
+    <!-- راست: چک -->
+    <ImageView
+        android:id="@+id/iv_check"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:src="@drawable/ic_check_empty"
+        android:contentDescription="وضعیت" />
+
+    <!-- عنوان -->
+    <ImageView
+        android:id="@+id/iv_task_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:adjustViewBounds="true"
+        android:scaleType="fitStart"
+        android:paddingStart="6dp"
+        android:paddingEnd="4dp"
+        android:contentDescription="عنوان" />
+
+    <!-- اولویت -->
+    <ImageView
+        android:id="@+id/iv_task_priority"
+        android:layout_width="22dp"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        android:contentDescription="اولویت" />
+
+    <!-- چپ: چیپ نام گروه (فقط در اولویت‌بندی) -->
+    <ImageView
+        android:id="@+id/iv_task_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        android:paddingStart="4dp"
+        android:minWidth="48dp"
+        android:visibility="gone"
+        android:contentDescription="گروه" />
+</LinearLayout>

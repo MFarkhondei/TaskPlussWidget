@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_bg">#D90A0F1A</color>
+    <color name="card_bg">#B3141C2C</color>
+    <color name="section_bg">#B31A2438</color>
+    <color name="accent_gold">#F5C542</color>
+    <color name="text_primary">#F8FAFC</color>
+    <color name="text_secondary">#94A3B8</color>
+    <color name="text_muted">#64748B</color>
+    <color name="profit_green">#34D399</color>
+    <color name="loss_red">#F87171</color>
+    <color name="divider">#66243044</color>
+    <color name="badge_pos">#1A34D399</color>
+    <color name="badge_neg">#1AF87171</color>
+    <color name="chip_selected">#33F5C542</color>
+    <color name="chip_normal">#1A2438</color>
+    <color name="priority_high">#F87171</color>
+    <color name="priority_med">#F5C542</color>
+    <color name="priority_low">#34D399</color>
+    <color name="done_text">#64748B</color>
+</resources>
