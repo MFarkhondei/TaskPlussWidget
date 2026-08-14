@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:width="70.2dp"
-        android:height="70.2dp"
+        android:width="64.8dp"
+        android:height="64.8dp"
         android:gravity="center">
         <inset
-            android:insetLeft="4.7325dp"
-            android:insetRight="4.7325dp"
+            android:insetLeft="4.3775dp"
+            android:insetRight="4.3775dp"
             android:insetTop="0dp"
             android:insetBottom="0dp">
             <bitmap
