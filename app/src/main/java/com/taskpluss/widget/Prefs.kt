@@ -50,6 +50,12 @@ object Prefs {
         @JvmName("setTaskFontSpExt")
         set(v) { sp(this).edit().putFloat("task_font_sp", v).apply() }
 
+    /** نمایش دائمی نوتیفیکیشن دسترسی سریع (دکمه افزودن تسک) در نوار اعلان‌ها */
+    var Context.persistentNotifEnabled: Boolean
+        get() = sp(this).getBoolean("persistent_notif_enabled", true)
+        @JvmName("setPersistentNotifEnabledExt")
+        set(v) { sp(this).edit().putBoolean("persistent_notif_enabled", v).apply() }
+
     var Context.cacheJson: String
         get() = sp(this).getString("cache_json", "") ?: ""
         set(v) { sp(this).edit().putString("cache_json", v).apply() }
@@ -65,6 +71,7 @@ object Prefs {
     fun selectedGroupKey(ctx: Context) = ctx.selectedGroupKey
     fun groupPage(ctx: Context) = ctx.groupPage
     fun taskFontSp(ctx: Context) = ctx.taskFontSp
+    fun persistentNotifEnabled(ctx: Context) = ctx.persistentNotifEnabled
 
     fun setWebappUrl(ctx: Context, v: String) { ctx.webappUrl = v }
     fun setToken(ctx: Context, v: String) { ctx.token = v }
@@ -73,6 +80,7 @@ object Prefs {
     fun setSelectedGroupKey(ctx: Context, v: String) { ctx.selectedGroupKey = v }
     fun setGroupPage(ctx: Context, v: Int) { ctx.groupPage = v }
     fun setTaskFontSp(ctx: Context, v: Float) { ctx.taskFontSp = v }
+    fun setPersistentNotifEnabled(ctx: Context, v: Boolean) { ctx.persistentNotifEnabled = v }
 
     fun saveCache(ctx: Context, cache: WidgetCache) {
         val root = JSONObject()
