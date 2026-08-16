@@ -44,6 +44,8 @@ class TaskFormActivity : AppCompatActivity() {
         val tvStatusTodo = findViewById<TextView>(R.id.tv_status_todo)
         val tvStatusDoing = findViewById<TextView>(R.id.tv_status_doing)
         val tvStatusDone = findViewById<TextView>(R.id.tv_status_done)
+        val tvStatusLabel = findViewById<TextView>(R.id.tv_status_label)
+        val rowStatus = findViewById<View>(R.id.row_status)
         val statusViews = mapOf(
             "todo" to tvStatusTodo,
             "doing" to tvStatusDoing,
@@ -117,6 +119,10 @@ class TaskFormActivity : AppCompatActivity() {
                 renderStatusSelection()
                 btnDelete.visibility = View.VISIBLE
             }
+        }
+        if (editingTask == null) {
+            tvStatusLabel.visibility = View.GONE
+            rowStatus.visibility = View.GONE
         }
 
         val openDatePicker = {
