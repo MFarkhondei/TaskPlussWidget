@@ -179,6 +179,20 @@
                 android:background="@drawable/bg_section"
                 android:padding="10dp" />
 
+            <TextView
+                android:id="@+id/tv_due_time"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.72"
+                android:text="بدون ساعت"
+                android:textSize="13sp"
+                android:textColor="#F8FAFC"
+                android:fontFamily="@font/vazirmatn"
+                android:gravity="center"
+                android:background="@drawable/bg_section"
+                android:padding="10dp"
+                android:layout_marginStart="4dp" />
+
             <Button
                 android:id="@+id/btn_pick_date"
                 android:layout_width="wrap_content"

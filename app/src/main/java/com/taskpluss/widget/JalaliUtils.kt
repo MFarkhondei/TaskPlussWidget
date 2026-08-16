@@ -10,6 +10,7 @@ object JalaliUtils {
     private val PERSIAN_LOCALE = ULocale("fa_IR@calendar=persian")
 
     data class JalaliParts(val year: Int, val month: Int, val day: Int)
+    data class TimeParts(val hour: Int, val minute: Int)
 
     fun nowTehranJalaliString(): String {
         val p = nowParts()
@@ -61,5 +62,12 @@ object JalaliUtils {
     fun newTaskId(): String {
         val rand = java.util.UUID.randomUUID().toString().replace("-", "").take(9)
         return "task_${System.currentTimeMillis()}_$rand"
+    }
+
+    fun parseTime(s: String): TimeParts? {
+        val match = Regex("(?:^|\\s)(\\d{1,2}):(\\d{2})$").find(s.trim()) ?: return null
+        val hour = match.groupValues[1].toIntOrNull() ?: return null
+        val minute = match.groupValues[2].toIntOrNull() ?: return null
+        return if (hour in 0..23 && minute in 0..59) TimeParts(hour, minute) else null
     }
 }

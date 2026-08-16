@@ -1,5 +1,6 @@
 package com.taskpluss.widget
 
+import android.app.TimePickerDialog
 import android.content.Context
 import android.os.Bundle
 import android.view.View
@@ -19,6 +20,7 @@ import kotlinx.coroutines.launch
 class TaskFormActivity : AppCompatActivity() {
 
     private var selectedDateJalali: String = ""
+    private var selectedTime: String = ""
     private var selectedStatus: String = "todo"
     private var editingTask: TaskItem? = null
     private val groupKeys = mutableListOf<String>()
@@ -33,6 +35,7 @@ class TaskFormActivity : AppCompatActivity() {
         val tvDueDate = findViewById<TextView>(R.id.tv_due_date)
         val btnPickDate = findViewById<Button>(R.id.btn_pick_date)
         val btnClearDate = findViewById<Button>(R.id.btn_clear_date)
+        val tvDueTime = findViewById<TextView>(R.id.tv_due_time)
         val etNotes = findViewById<EditText>(R.id.et_notes)
         val btnSave = findViewById<Button>(R.id.btn_save_task)
         val btnDelete = findViewById<Button>(R.id.btn_delete_task)
@@ -101,7 +104,13 @@ class TaskFormActivity : AppCompatActivity() {
                 spinnerPriority.setSelection(pSel)
                 val gi = groupKeys.indexOf(if (t.group.isBlank()) "none" else t.group)
                 if (gi >= 0) spinnerGroup.setSelection(gi)
-                selectedDateJalali = t.date.trim()
+                selectedDateJalali = JalaliUtils.parseJalaliDate(t.date)?.let {
+                    JalaliUtils.formatJalaliDate(it.year, it.month, it.day)
+                }.orEmpty()
+                selectedTime = JalaliUtils.parseTime(t.date)?.let {
+                    "%02d:%02d".format(it.hour, it.minute)
+                }.orEmpty()
+                tvDueTime.text = if (selectedTime.isBlank()) "بدون ساعت" else selectedTime
                 tvDueDate.text = if (selectedDateJalali.isBlank()) "بدون تاریخ" else selectedDateJalali
                 etNotes.setText(t.notes)
                 selectedStatus = if (t.status in statusViews.keys) t.status else "todo"
@@ -127,7 +136,29 @@ class TaskFormActivity : AppCompatActivity() {
 
         btnClearDate.setOnClickListener {
             selectedDateJalali = ""
+            selectedTime = ""
+            tvDueTime.text = "بدون ساعت"
             tvDueDate.text = "بدون تاریخ"
+        }
+
+        tvDueTime.setOnClickListener {
+            val initial = JalaliUtils.parseTime(" $selectedTime")
+            val now = java.util.Calendar.getInstance()
+            TimePickerDialog(
+                this,
+                { _, hour, minute ->
+                    selectedTime = "%02d:%02d".format(hour, minute)
+                    tvDueTime.text = selectedTime
+                    if (selectedDateJalali.isBlank()) {
+                        val today = JalaliUtils.nowParts()
+                        selectedDateJalali = JalaliUtils.formatJalaliDate(today.year, today.month, today.day)
+                        tvDueDate.text = selectedDateJalali
+                    }
+                },
+                initial?.hour ?: now.get(java.util.Calendar.HOUR_OF_DAY),
+                initial?.minute ?: now.get(java.util.Calendar.MINUTE),
+                true
+            ).show()
         }
 
         btnClose.setOnClickListener { finish() }
@@ -183,7 +214,9 @@ class TaskFormActivity : AppCompatActivity() {
             val priority = spinnerPriority.selectedItemPosition.coerceIn(0, 5)
             val groupKey = groupKeys.getOrElse(spinnerGroup.selectedItemPosition) { "none" }
             val notes = etNotes.text?.toString()?.trim().orEmpty()
-            val date = selectedDateJalali
+            val date = listOf(selectedDateJalali, selectedTime)
+                .filter { it.isNotBlank() }
+                .joinToString(" ")
             val existing = editingTask
             val appCtx = applicationContext
 
