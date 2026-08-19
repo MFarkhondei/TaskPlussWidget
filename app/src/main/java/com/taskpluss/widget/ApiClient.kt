@@ -140,6 +140,7 @@ object ApiClient {
             var page = 0
             val limit = 500
             var hasMore = true
+            var groupsText = ""
             
             while (hasMore) {
                 val tasksData = JSONObject().apply {
@@ -153,7 +154,6 @@ object ApiClient {
                 ))
 
                 // درخواست گروه‌ها فقط در دور اول
-                var groupsText = ""
                 if (page == 0) {
                     try { 
                         groupsText = getText(groupsUrl) 
