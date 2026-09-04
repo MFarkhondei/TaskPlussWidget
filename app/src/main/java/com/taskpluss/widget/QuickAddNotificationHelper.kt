@@ -40,12 +40,13 @@ object QuickAddNotificationHelper {
                     if (time == null) 24 * 60 else time.hour * 60 + time.minute
                 }.thenBy { it.created }
             )
-        val todoCount = cache.tasks.count { it.status == "todo" }
-        val doingCount = cache.tasks.count { it.status == "doing" }
+        val unfinishedCount = cache.tasks.count {
+            it.status != "done" && it.status != "deleted"
+        }
         val contentText = if (todayTasks.isEmpty()) {
-            "امروز تسکی ثبت نشده است"
+            "امروز تسکی وجود ندارد."
         } else {
-            "امروز: ${todayTasks.size} تسک  •  انجام‌نشده: $todoCount"
+            "امروز: ${todayTasks.size} تسک  •  انجام نشده: $unfinishedCount"
         }
 
         val addTaskIntent = Intent(context, AddTaskActivity::class.java).apply {
@@ -71,24 +72,23 @@ object QuickAddNotificationHelper {
         if (todayTasks.isEmpty()) {
             builder.setStyle(
                 NotificationCompat.BigTextStyle()
-                    .bigText("برای امروز تسکی با تاریخ تعیین‌شده وجود ندارد.")
+                    .bigText("برای امروز تسکی وجود ندارد.")
             )
         } else {
             val inbox = NotificationCompat.InboxStyle()
                 .setBigContentTitle("تسک‌های امروز")
                 .setSummaryText("تسک پلاس")
             todayTasks.forEach { task ->
-                val marker = when (task.status) {
-                    "done" -> "✓"
-                    "doing" -> "◐"
-                    else -> "○"
-                }
                 val time = JalaliUtils.formatTime(task.date)
                 val title = task.title.replace(Regex("\\s+"), " ").trim()
                     .ifBlank { "بدون عنوان" }
+                val group = when {
+                    task.group.isBlank() || task.group == "none" -> "بدون گروه"
+                    else -> cache.groups[task.group]?.name ?: task.group
+                }
                 inbox.addLine(
-                    listOfNotNull(time, "$marker $title")
-                        .joinToString(" — ")
+                    listOfNotNull(time, title, group)
+                        .joinToString(" - ")
                         .take(120)
                 )
             }
