@@ -79,7 +79,7 @@ object QuickAddNotificationHelper {
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle("تسک پلاس")
-            .setContentText("تسک‌های امروز")
+            .setContentText(countText)
             .setSmallIcon(R.drawable.ic_add)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
@@ -113,7 +113,7 @@ object QuickAddNotificationHelper {
                     )
                 }
             }
-            expandedView.setTextViewText(R.id.notification_task_count, countText)
+            expandedView.setViewVisibility(R.id.notification_task_count, View.GONE)
             expandedView.setOnClickPendingIntent(
                 R.id.notification_today_root,
                 addTaskPendingIntent
