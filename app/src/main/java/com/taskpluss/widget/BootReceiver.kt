@@ -6,9 +6,13 @@ import android.content.Intent
 
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
-        if (intent?.action == Intent.ACTION_BOOT_COMPLETED) {
-            AlarmHelper.schedule(context)
-            QuickAddNotificationHelper.refresh(context)
+        when (intent?.action) {
+            Intent.ACTION_BOOT_COMPLETED,
+            Intent.ACTION_MY_PACKAGE_REPLACED -> {
+                AlarmHelper.schedule(context)
+                AlarmHelper.syncTaskReminders(context, Prefs.loadCache(context).tasks)
+                QuickAddNotificationHelper.refresh(context)
+            }
         }
     }
 }
