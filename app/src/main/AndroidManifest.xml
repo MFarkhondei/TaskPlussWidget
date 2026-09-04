@@ -36,8 +36,7 @@
             android:theme="@style/Theme.TaskPlussWidget"
             android:excludeFromRecents="true"
             android:windowSoftInputMode="stateVisible|adjustResize"
-            android:taskAffinity=""
-            android:launchMode="singleTask" />
+            android:taskAffinity="" />
 
         <activity
             android:name=".AddTaskActivity"
