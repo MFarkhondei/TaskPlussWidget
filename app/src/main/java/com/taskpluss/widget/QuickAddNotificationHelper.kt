@@ -43,11 +43,7 @@ object QuickAddNotificationHelper {
         val unfinishedCount = cache.tasks.count {
             it.status != "done" && it.status != "deleted"
         }
-        val contentText = if (todayTasks.isEmpty()) {
-            "امروز تسکی وجود ندارد."
-        } else {
-            "امروز: ${todayTasks.size} تسک  •  انجام نشده: $unfinishedCount"
-        }
+        val contentText = "انجام نشده: $unfinishedCount - امروز: ${todayTasks.size}"
 
         val addTaskIntent = Intent(context, AddTaskActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -76,8 +72,8 @@ object QuickAddNotificationHelper {
             )
         } else {
             val inbox = NotificationCompat.InboxStyle()
-                .setBigContentTitle("تسک‌های امروز")
-                .setSummaryText("تسک پلاس")
+                .setBigContentTitle("تسک پلاس")
+                .setSummaryText(contentText)
             todayTasks.forEach { task ->
                 val time = JalaliUtils.formatTime(task.date)
                 val title = task.title.replace(Regex("\\s+"), " ").trim()
