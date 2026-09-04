@@ -99,6 +99,11 @@
         </receiver>
 
         <receiver
+            android:name=".TaskReminderReceiver"
+            android:exported="false"
+            android:enabled="true" />
+
+        <receiver
             android:name=".WidgetUpdateReceiver"
             android:exported="false"
             android:enabled="true" />
