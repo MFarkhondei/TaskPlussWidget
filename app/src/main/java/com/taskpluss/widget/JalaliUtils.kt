@@ -48,7 +48,7 @@ object JalaliUtils {
     }
 
     fun parseJalaliDate(s: String): JalaliParts? {
-        val t = s.trim()
+        val t = toLatinDigits(s.trim())
         if (t.isBlank()) return null
         val parts = t.split(" ", "T").first().split("/", "-")
         if (parts.size < 3) return null
@@ -65,9 +65,53 @@ object JalaliUtils {
     }
 
     fun parseTime(s: String): TimeParts? {
-        val match = Regex("(?:^|\\s)(\\d{1,2}):(\\d{2})$").find(s.trim()) ?: return null
+        val normalized = toLatinDigits(s.trim())
+        val match = Regex("(?:^|\\s)(\\d{1,2}):(\\d{2})$").find(normalized) ?: return null
         val hour = match.groupValues[1].toIntOrNull() ?: return null
         val minute = match.groupValues[2].toIntOrNull() ?: return null
         return if (hour in 0..23 && minute in 0..59) TimeParts(hour, minute) else null
+    }
+
+    fun isToday(value: String): Boolean {
+        val date = parseJalaliDate(value) ?: return false
+        val today = nowParts()
+        return date.year == today.year && date.month == today.month && date.day == today.day
+    }
+
+    fun formatTime(value: String): String? {
+        return parseTime(value)?.let { "%02d:%02d".format(it.hour, it.minute) }
+    }
+
+    /**
+     * تبدیل تاریخ و ساعت شمسی ذخیره‌شده به epoch میلی‌ثانیه برای AlarmManager.
+     */
+    fun toTehranMillis(value: String): Long? {
+        val date = parseJalaliDate(value) ?: return null
+        val time = parseTime(value) ?: return null
+        return try {
+            val cal = Calendar.getInstance(TEHRAN, PERSIAN_LOCALE)
+            cal.clear()
+            cal.isLenient = false
+            cal.set(Calendar.YEAR, date.year)
+            cal.set(Calendar.MONTH, date.month - 1)
+            cal.set(Calendar.DAY_OF_MONTH, date.day)
+            cal.set(Calendar.HOUR_OF_DAY, time.hour)
+            cal.set(Calendar.MINUTE, time.minute)
+            cal.set(Calendar.SECOND, 0)
+            cal.set(Calendar.MILLISECOND, 0)
+            cal.timeInMillis
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun toLatinDigits(value: String): String {
+        return value.map { ch ->
+            when (ch) {
+                in '۰'..'۹' -> ('0'.code + (ch.code - '۰'.code)).toChar()
+                in '٠'..'٩' -> ('0'.code + (ch.code - '٠'.code)).toChar()
+                else -> ch
+            }
+        }.joinToString("")
     }
 }
