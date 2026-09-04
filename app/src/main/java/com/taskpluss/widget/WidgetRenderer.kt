@@ -64,15 +64,10 @@ object WidgetRenderer {
     private fun buildRemoteViews(context: Context, cache: WidgetCache, appWidgetId: Int): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.widget_layout)
 
-        val unfinishedCount = cache.tasks.count {
-            it.status != "done" && it.status != "deleted"
-        }
-        val todayCount = cache.tasks.count { JalaliUtils.isToday(it.date) }
-        val widgetTitle = "انجام نشده: $unfinishedCount - امروز: $todayCount"
         WidgetText.setLabel(
-            context, rv, R.id.iv_widget_title, widgetTitle,
-            textSizeSp = 11.5f, color = 0xFFF5C542.toInt(), bold = true,
-            maxWidthDp = 165, align = WidgetText.Align.LTR_START
+            context, rv, R.id.iv_widget_title, "تسک پلاس",
+            textSizeSp = 18f, color = 0xFFF5C542.toInt(), bold = true,
+            maxWidthDp = 120, align = WidgetText.Align.LTR_START
         )
 
         val statusText = when {
@@ -85,7 +80,7 @@ object WidgetRenderer {
         WidgetText.setLabel(
             context, rv, R.id.iv_updated, statusText,
             textSizeSp = 10.5f, color = statusColor, bold = false,
-            maxWidthDp = 100, align = WidgetText.Align.LTR_START, tightFit = true
+            maxWidthDp = 145, align = WidgetText.Align.LTR_START, tightFit = true
         )
 
         val refreshPi = PendingIntent.getActivity(
