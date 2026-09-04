@@ -142,6 +142,7 @@ class ConfigActivity : AppCompatActivity() {
                     withContext(Dispatchers.IO) {
                         WidgetRenderer.fetchAndApply(this@ConfigActivity)
                     }
+                    requestNotificationPermissionIfNeeded()
                     tvStatus.text = "آماده است"
                     Toast.makeText(this@ConfigActivity, "آماده است", Toast.LENGTH_SHORT).show()
                 } else {
@@ -172,6 +173,15 @@ class ConfigActivity : AppCompatActivity() {
                 }
                 tvStatus.text = "رفرش انجام شد"
             }
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
         }
     }
 }
