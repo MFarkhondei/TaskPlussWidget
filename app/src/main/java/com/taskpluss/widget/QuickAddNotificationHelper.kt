@@ -32,16 +32,30 @@ object QuickAddNotificationHelper {
         ensureChannel(context)
 
         val cache = Prefs.loadCache(context)
+        val currentMinute = java.util.Calendar.getInstance(
+            java.util.TimeZone.getTimeZone("Asia/Tehran")
+        ).let {
+            it.get(java.util.Calendar.HOUR_OF_DAY) * 60 +
+                it.get(java.util.Calendar.MINUTE)
+        }
         val todayTasks = cache.tasks
-            .filter { JalaliUtils.isToday(it.date) }
+            .filter {
+                JalaliUtils.isToday(it.date) &&
+                    (it.status == "todo" || it.status == "doing")
+            }
             .sortedWith(
                 compareBy<TaskItem> {
                     val time = JalaliUtils.parseTime(it.date)
-                    if (time == null) 24 * 60 else time.hour * 60 + time.minute
-                }.thenBy { it.created }
+                    if (time == null) Int.MAX_VALUE else kotlin.math.abs(
+                        time.hour * 60 + time.minute - currentMinute
+                    )
+                }.thenBy {
+                    val time = JalaliUtils.parseTime(it.date)
+                    if (time == null) Int.MAX_VALUE else time.hour * 60 + time.minute
+                }
             )
         val unfinishedCount = cache.tasks.count {
-            it.status != "done" && it.status != "deleted"
+            it.status == "todo" || it.status == "doing"
         }
         val contentText = "انجام نشده: $unfinishedCount - امروز: ${todayTasks.size}"
 
@@ -61,6 +75,7 @@ object QuickAddNotificationHelper {
             .setOngoing(true)
             .setSilent(true)
             .setShowWhen(false)
+            .setNumber(0)
             .setContentIntent(addTaskPendingIntent)
             .addAction(R.drawable.ic_add, "افزودن تسک جدید", addTaskPendingIntent)
 
@@ -90,7 +105,9 @@ object QuickAddNotificationHelper {
             builder.setStyle(inbox)
         }
 
-        NotificationManagerCompat.from(context).notify(NOTIF_ID, builder.build())
+        val notificationManager = NotificationManagerCompat.from(context)
+        notificationManager.cancel(NOTIF_ID)
+        notificationManager.notify(NOTIF_ID, builder.build())
     }
 
     fun hide(context: Context) {
