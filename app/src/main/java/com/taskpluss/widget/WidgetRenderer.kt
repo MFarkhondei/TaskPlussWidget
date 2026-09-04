@@ -57,6 +57,7 @@ object WidgetRenderer {
             mgr.updateAppWidget(id, rv)
             mgr.notifyAppWidgetViewDataChanged(id, R.id.list_tasks)
         }
+        AlarmHelper.syncTaskReminders(context, cache.tasks)
         QuickAddNotificationHelper.refresh(context)
     }
 
