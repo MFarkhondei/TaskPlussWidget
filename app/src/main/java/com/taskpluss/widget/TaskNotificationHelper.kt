@@ -40,7 +40,12 @@ object TaskNotificationHelper {
         val time = JalaliUtils.formatTime(task.date)
         val taskTitle = task.title.replace(Regex("\\s+"), " ").trim()
             .ifBlank { "بدون عنوان" }
-        val body = if (time == null) taskTitle else "$time — $taskTitle"
+        val group = when {
+            task.group.isBlank() || task.group == "none" -> "بدون گروه"
+            else -> Prefs.loadCache(context).groups[task.group]?.name ?: task.group
+        }
+        val body = listOfNotNull(time, taskTitle, group)
+            .joinToString(" - ")
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_add)
