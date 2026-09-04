@@ -61,7 +61,6 @@ object QuickAddNotificationHelper {
             .setOngoing(true)
             .setSilent(true)
             .setShowWhen(false)
-            .setNumber(todayTasks.size)
             .setContentIntent(addTaskPendingIntent)
             .addAction(R.drawable.ic_add, "افزودن تسک جدید", addTaskPendingIntent)
 
