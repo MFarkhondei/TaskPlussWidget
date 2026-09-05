@@ -24,8 +24,12 @@ object QuickAddNotificationHelper {
     private const val CHANNEL_ID = "taskpluss_quick_add"
     private const val NOTIF_ID = 4210
     private const val REQ_ADD_TASK = 4211
+    private const val REQ_PREVIOUS_PAGE = 4212
+    private const val REQ_NEXT_PAGE = 4213
     private const val REQ_EDIT_TASK_BASE = 50_000
-    private const val MAX_VISIBLE_TASKS = 6
+    private const val TASKS_PER_PAGE = 6
+    private const val PAGE_PREFS = "quick_add_notification"
+    private const val PAGE_KEY = "today_page"
 
     private val taskRowIds = intArrayOf(
         R.id.notification_task_1,
@@ -38,6 +42,13 @@ object QuickAddNotificationHelper {
 
     fun refresh(context: Context) {
         if (Prefs.persistentNotifEnabled(context)) show(context) else hide(context)
+    }
+
+    fun movePage(context: Context, delta: Int) {
+        val pagePrefs = context.getSharedPreferences(PAGE_PREFS, Context.MODE_PRIVATE)
+        val currentPage = pagePrefs.getInt(PAGE_KEY, 0)
+        pagePrefs.edit().putInt(PAGE_KEY, currentPage + delta).apply()
+        show(context)
     }
 
     fun show(context: Context) {
@@ -75,6 +86,17 @@ object QuickAddNotificationHelper {
         }
         val countText = "انجام نشده: $unfinishedCount - امروز: ${todayTasks.size}"
 
+        val totalPages = maxOf(1, (todayTasks.size + TASKS_PER_PAGE - 1) / TASKS_PER_PAGE)
+        val pagePrefs = context.getSharedPreferences(PAGE_PREFS, Context.MODE_PRIVATE)
+        val storedPage = pagePrefs.getInt(PAGE_KEY, 0)
+        val currentPage = storedPage.coerceIn(0, totalPages - 1)
+        if (currentPage != storedPage) {
+            pagePrefs.edit().putInt(PAGE_KEY, currentPage).apply()
+        }
+        val pageTasks = todayTasks
+            .drop(currentPage * TASKS_PER_PAGE)
+            .take(TASKS_PER_PAGE)
+
         val addTaskPendingIntent = addTaskPendingIntent(context)
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
@@ -101,7 +123,7 @@ object QuickAddNotificationHelper {
                 R.layout.notification_today_expanded
             )
             taskRowIds.forEachIndexed { index, rowId ->
-                val task = todayTasks.getOrNull(index)
+                val task = pageTasks.getOrNull(index)
                 if (task == null) {
                     expandedView.setViewVisibility(rowId, View.GONE)
                 } else {
@@ -113,7 +135,49 @@ object QuickAddNotificationHelper {
                     )
                 }
             }
-            expandedView.setViewVisibility(R.id.notification_task_count, View.GONE)
+
+            if (totalPages > 1) {
+                expandedView.setViewVisibility(R.id.notification_paging, View.VISIBLE)
+                expandedView.setTextViewText(
+                    R.id.notification_page,
+                    "صفحه ${currentPage + 1} از $totalPages"
+                )
+
+                val hasPrevious = currentPage > 0
+                expandedView.setViewVisibility(
+                    R.id.notification_previous,
+                    if (hasPrevious) View.VISIBLE else View.INVISIBLE
+                )
+                if (hasPrevious) {
+                    expandedView.setOnClickPendingIntent(
+                        R.id.notification_previous,
+                        pagePendingIntent(
+                            context,
+                            NotificationPageReceiver.ACTION_PREVIOUS_PAGE,
+                            REQ_PREVIOUS_PAGE
+                        )
+                    )
+                }
+
+                val hasNext = currentPage < totalPages - 1
+                expandedView.setViewVisibility(
+                    R.id.notification_next,
+                    if (hasNext) View.VISIBLE else View.INVISIBLE
+                )
+                if (hasNext) {
+                    expandedView.setOnClickPendingIntent(
+                        R.id.notification_next,
+                        pagePendingIntent(
+                            context,
+                            NotificationPageReceiver.ACTION_NEXT_PAGE,
+                            REQ_NEXT_PAGE
+                        )
+                    )
+                }
+            } else {
+                expandedView.setViewVisibility(R.id.notification_paging, View.GONE)
+            }
+
             expandedView.setOnClickPendingIntent(
                 R.id.notification_today_root,
                 addTaskPendingIntent
@@ -139,6 +203,22 @@ object QuickAddNotificationHelper {
         return PendingIntent.getActivity(
             context,
             REQ_ADD_TASK,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
+    private fun pagePendingIntent(
+        context: Context,
+        action: String,
+        requestCode: Int
+    ): PendingIntent {
+        val intent = Intent(context, NotificationPageReceiver::class.java).apply {
+            this.action = action
+        }
+        return PendingIntent.getBroadcast(
+            context,
+            requestCode,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
