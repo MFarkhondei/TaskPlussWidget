@@ -103,6 +103,11 @@
             android:enabled="true" />
 
         <receiver
+            android:name=".NotificationPageReceiver"
+            android:exported="false"
+            android:enabled="true" />
+
+        <receiver
             android:name=".WidgetUpdateReceiver"
             android:exported="false"
             android:enabled="true" />
