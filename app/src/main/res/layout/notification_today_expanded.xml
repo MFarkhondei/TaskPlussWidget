@@ -70,13 +70,42 @@
         android:maxLines="1"
         android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/notification_task_count"
-        style="@style/TextAppearance.Compat.Notification.Info"
+    <LinearLayout
+        android:id="@+id/notification_paging"
         android:layout_width="match_parent"
         android:layout_height="28dp"
-        android:gravity="center_vertical|start"
-        android:ellipsize="end"
-        android:maxLines="1" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layoutDirection="rtl"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/notification_next"
+            style="@style/TextAppearance.Compat.Notification.Title"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="بعدی" />
+
+        <TextView
+            android:id="@+id/notification_page"
+            style="@style/TextAppearance.Compat.Notification.Info"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.4"
+            android:gravity="center"
+            android:maxLines="1" />
+
+        <TextView
+            android:id="@+id/notification_previous"
+            style="@style/TextAppearance.Compat.Notification.Title"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="قبلی" />
+
+    </LinearLayout>
 
 </LinearLayout>
