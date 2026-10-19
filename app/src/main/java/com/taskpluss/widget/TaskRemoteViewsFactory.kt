@@ -30,8 +30,8 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         groupOrder = cache.groups.keys.filter { it != "none" }.toList()
         groupNames = cache.groups.mapValues { it.value.name }
         currentKey = key
-        showGroupChip = (key == "by_priority")
-        showDateChip = (key == "schedule" || key == "today")
+        showGroupChip = (key == "by_priority" || key == "schedule" || key == "today")
+        showDateChip = false  // دیگر تاریخ در چیپ نشان داده نمی‌شود
 
         val byPriorityAsc = compareBy<TaskItem> {
             if (it.priority in 1..5) it.priority else 99
@@ -108,12 +108,12 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         val rv = RemoteViews(context.packageName, R.layout.item_task)
         rv.setImageViewResource(R.id.iv_check, R.drawable.ic_check_empty)
 
-        // اولویت‌بندی: نیم درجه (+0.5sp) بزرگ‌تر از همه
+        // اولویت‌بندی / زمانبندی / امروز: فونت کمی بزرگ‌تر و عرض عنوان کمتر به‌خاطر چیپ گروه
         val listFont: Float
         val titleWidth: Int
-        if (showGroupChip || showDateChip) {
+        if (showGroupChip) {
             listFont = (titleFontSp + 0.5f).coerceAtMost(22f)
-            titleWidth = 170
+            titleWidth = if (currentKey == "schedule" || currentKey == "today") 185 else 170
         } else {
             listFont = titleFontSp
             titleWidth = 200
@@ -125,24 +125,20 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
             maxLines = 2
         )
 
-        val label = if (t.priority in 1..5) t.priority.toString() else ""
-        WidgetText.setPriority(context, rv, R.id.iv_task_priority, label, priorityColor(t.priority))
+        // در زمانبندی و امروز اولویت نشان داده نمی‌شود
+        val hidePriority = (currentKey == "schedule" || currentKey == "today")
+        if (hidePriority) {
+            rv.setViewVisibility(R.id.iv_task_priority, View.GONE)
+        } else {
+            rv.setViewVisibility(R.id.iv_task_priority, View.VISIBLE)
+            val label = if (t.priority in 1..5) t.priority.toString() else ""
+            WidgetText.setPriority(context, rv, R.id.iv_task_priority, label, priorityColor(t.priority))
+        }
 
         if (showGroupChip) {
             rv.setViewVisibility(R.id.iv_task_group, View.VISIBLE)
             WidgetText.setLabel(
                 context, rv, R.id.iv_task_group, groupLabel(t.group),
-                textSizeSp = (titleFontSp - 1.5f).coerceAtLeast(9f),
-                color = 0xFF94A3B8.toInt(),
-                bold = false,
-                maxWidthDp = 64,
-                align = WidgetText.Align.CENTER
-            )
-        } else if (showDateChip) {
-            rv.setViewVisibility(R.id.iv_task_group, View.VISIBLE)
-            val label = formatDateLabel(t.date, currentKey == "today")
-            WidgetText.setLabel(
-                context, rv, R.id.iv_task_group, label,
                 textSizeSp = (titleFontSp - 1.5f).coerceAtLeast(9f),
                 color = 0xFF94A3B8.toInt(),
                 bold = false,
