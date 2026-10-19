@@ -11,6 +11,8 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
 
     private var tasks: List<TaskItem> = emptyList()
     private var showGroupChip: Boolean = false
+    private var showDateChip: Boolean = false
+    private var currentKey: String = ""
     private var groupNames: Map<String, String> = emptyMap()
     private var groupOrder: List<String> = emptyList()
     private var titleFontSp: Float = 11f
@@ -27,7 +29,9 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
 
         groupOrder = cache.groups.keys.filter { it != "none" }.toList()
         groupNames = cache.groups.mapValues { it.value.name }
+        currentKey = key
         showGroupChip = (key == "by_priority")
+        showDateChip = (key == "schedule" || key == "today")
 
         val byPriorityAsc = compareBy<TaskItem> {
             if (it.priority in 1..5) it.priority else 99
@@ -42,8 +46,42 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
                     .thenBy { if (it.priority in 1..5) it.priority else 99 }
                     .thenByDescending { it.created }
             )
+            "schedule" -> active
+                .filter { it.date.isNotBlank() && JalaliUtils.parseJalaliDate(it.date) != null }
+                .sortedWith(
+                    compareBy<TaskItem> { dateSortKey(it.date) }
+                        .thenByDescending { it.created }
+                )
+            "today" -> active
+                .filter { JalaliUtils.isToday(it.date) }
+                .sortedWith(
+                    compareBy<TaskItem> { timeSortKey(it.date) }
+                        .thenBy { if (it.priority in 1..5) it.priority else 99 }
+                        .thenByDescending { it.created }
+                )
             else -> active.filter { it.group == key }.sortedWith(byPriorityAsc)
         }
+    }
+
+    private fun dateSortKey(dateStr: String): Long {
+        val parts = JalaliUtils.parseJalaliDate(dateStr) ?: return Long.MAX_VALUE
+        var key = parts.year.toLong() * 1_000_000L + parts.month * 10_000L + parts.day * 100L
+        val time = JalaliUtils.parseTime(dateStr)
+        if (time != null) key += time.hour * 60L + time.minute
+        return key
+    }
+
+    private fun timeSortKey(dateStr: String): Int {
+        val time = JalaliUtils.parseTime(dateStr)
+        return if (time == null) 24 * 60 else time.hour * 60 + time.minute
+    }
+
+    private fun formatDateLabel(dateStr: String, forToday: Boolean): String {
+        if (forToday) {
+            JalaliUtils.formatTime(dateStr)?.let { return it }
+        }
+        val parts = JalaliUtils.parseJalaliDate(dateStr) ?: return ""
+        return "%02d/%02d".format(parts.month, parts.day)
     }
 
     private fun groupRank(groupKey: String): Int {
@@ -73,7 +111,7 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
         // اولویت‌بندی: نیم درجه (+0.5sp) بزرگ‌تر از همه
         val listFont: Float
         val titleWidth: Int
-        if (showGroupChip) {
+        if (showGroupChip || showDateChip) {
             listFont = (titleFontSp + 0.5f).coerceAtMost(22f)
             titleWidth = 170
         } else {
@@ -94,6 +132,17 @@ class TaskRemoteViewsFactory(private val context: Context) : RemoteViewsService.
             rv.setViewVisibility(R.id.iv_task_group, View.VISIBLE)
             WidgetText.setLabel(
                 context, rv, R.id.iv_task_group, groupLabel(t.group),
+                textSizeSp = (titleFontSp - 1.5f).coerceAtLeast(9f),
+                color = 0xFF94A3B8.toInt(),
+                bold = false,
+                maxWidthDp = 64,
+                align = WidgetText.Align.CENTER
+            )
+        } else if (showDateChip) {
+            rv.setViewVisibility(R.id.iv_task_group, View.VISIBLE)
+            val label = formatDateLabel(t.date, currentKey == "today")
+            WidgetText.setLabel(
+                context, rv, R.id.iv_task_group, label,
                 textSizeSp = (titleFontSp - 1.5f).coerceAtLeast(9f),
                 color = 0xFF94A3B8.toInt(),
                 bold = false,

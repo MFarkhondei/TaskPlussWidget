@@ -106,8 +106,8 @@ object WidgetRenderer {
         )
         rv.setOnClickPendingIntent(R.id.btn_add_task, addPi)
 
-        val allKeys = mutableListOf("all", "by_priority")
-        val allNames = mutableListOf("همه", "اولویت‌بندی")
+        val allKeys = mutableListOf("all", "by_priority", "schedule", "today")
+        val allNames = mutableListOf("همه", "اولویت‌بندی", "زمانبندی", "امروز")
         cache.groups.entries
             .filter { it.key != "none" }
             .forEach {
@@ -181,6 +181,8 @@ object WidgetRenderer {
             if (t.status == "done" || t.status == "deleted") false
             else when (cache.selectedGroupKey) {
                 "all", "by_priority" -> true
+                "schedule" -> t.date.isNotBlank() && JalaliUtils.parseJalaliDate(t.date) != null
+                "today" -> JalaliUtils.isToday(t.date)
                 else -> t.group == cache.selectedGroupKey
             }
         }
